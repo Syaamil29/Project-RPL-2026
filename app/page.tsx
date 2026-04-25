@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -7,38 +8,67 @@ import { supabase } from "@/lib/supabase"
 import { isAdmin } from "@/lib/auth"
 
 const menuItems = [
+  { label: "Home", href: "#home" },
   { label: "Tentang", href: "#tentang" },
   { label: "Fasilitas", href: "#fasilitas" },
   { label: "Produk", href: "#produk" },
   { label: "Riwayat", href: "/reservasi/riwayat" },
 ] as const
 
-const fasilitasItems = [
+const facilities = [
   {
-    title: "Laboratorium Hidroponik",
-    description:
-      "Eksplorasi sistem budidaya modern berbasis air untuk pembelajaran pertanian presisi.",
-    icon: "LH",
+    id: 1,
+    title: "Green House Nursery",
+    description: "Belajar budidaya tanaman dengan teknologi modern.",
+    capacity: 20,
+    image: "/images-1-facilities.png",
   },
   {
-    title: "Greenhouse",
-    description:
-      "Area tanam terkendali untuk riset tanaman dan praktik agrikultur berkelanjutan.",
-    icon: "GH",
+    id: 2,
+    title: "Hydroponic Lab",
+    description: "Eksplorasi sistem hidroponik berbasis teknologi presisi.",
+    capacity: 25,
+    image: "/images-1-facilities.png",
   },
   {
-    title: "Kebun Organik",
-    description:
-      "Lahan edukatif untuk teknik budidaya organik ramah lingkungan dan sehat.",
-    icon: "KO",
+    id: 3,
+    title: "Biotech Lab",
+    description: "Riset bioteknologi untuk inovasi pertanian modern.",
+    capacity: 15,
+    image: "/images-1-facilities.png",
+  },
+];
+
+const products = [
+  {
+    id: 1,
+    title: "Bayam Hijau",
+    price: "Rp 6.000/ikat",
+    reviews: 120,
+    image: "/images-1-facilities.png",
   },
   {
-    title: "Laboratorium Bioteknologi",
-    description:
-      "Fasilitas riset inovasi bioteknologi untuk pengembangan ilmu dan aplikasi agribisnis.",
-    icon: "LB",
+    id: 2,
+    title: "Bayam Hijau",
+    price: "Rp 6.000/ikat",
+    reviews: 120,
+    image: "/images-1-facilities.png",
   },
-] as const
+  {
+    id: 3,
+    title: "Bayam Hijau",
+    price: "Rp 6.000/ikat",
+    reviews: 120,
+    image: "/images-1-facilities.png",
+  },
+  {
+    id: 4,
+    title: "Bayam Hijau",
+    price: "Rp 6.000/ikat",
+    reviews: 120,
+    image: "/images-1-facilities.png",
+  },
+];
 
 const langkahReservasi = [
   {
@@ -58,21 +88,49 @@ const langkahReservasi = [
   },
 ] as const
 
+const contactItems = [
+  {
+    label: "Alamat",
+    value:
+      "Jl. Carang Pulang No. 1, Cikarawang, Kec. Dramaga, Bogor 16680",
+  },
+  {
+    label: "Jam Operasional",
+    value: "Senin - Jumat (08.00 - 16.00)",
+  },
+  {
+    label: "Telepon",
+    value: "+62 85733392949",
+    href: "tel:+6285733392949",
+  },
+  {
+    label: "Email",
+    value: "atp@apps.ipb.ac.id",
+    href: "mailto:atp@apps.ipb.ac.id",
+  },
+];
+
+const quickLinks = [
+  { label: "IPB Official", href: "#" },
+  { label: "Lembaga Pengembangan Agromaritim", href: "#" },
+  { label: "SobaTani IPB", href: "#" },
+];
+
 export default function HomePage() {
   const router = useRouter()
-  const [activeSection, setActiveSection] = useState("tentang")
+  const [activeSection, setActiveSection] = useState("home")
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
-    const sections = ["tentang", "fasilitas", "produk"]
+    const sections = ["home", "tentang", "fasilitas", "produk"]
       .map((id) => document.getElementById(id))
       .filter((section): section is HTMLElement => section !== null)
 
     const onScroll = () => {
       const viewportPoint = window.scrollY + 120
-      let current = "tentang"
+      let current = "home"
 
       for (const section of sections) {
         if (viewportPoint >= section.offsetTop) {
@@ -217,98 +275,243 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="bg-gradient-to-b from-blue-50 to-slate-50">
-        <div className="mx-auto w-full max-w-6xl px-4 py-20 text-center sm:px-6">
+      <section id="home" className="relative w-full bg-gradient-to-b from-blue-50 to-slate-50">
+        <div className="w-full text-center px-0">
+
+          {/* IMAGE SLIDER SIMPLE (NO ERROR VERSION) */}
+          <div className="mx-auto mb-8 w-full max-w-4xl overflow-hidden rounded-xl shadow-lg">
+
+            <div className="relative w-full h-[300px]">
+              <Image
+                src="/hero-image.png"
+                alt="ATP 1"
+                fill
+                className="object-cover"
+              />
+            </div>
+
+          </div>
+
+          {/* ADMIN */}
           {authLoading ? null : isAdminUser ? (
-            <div className="mx-auto mb-8 w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-6 text-left shadow-lg">
+            <div className="mx-auto mb-8 w-full max-w-3xl rounded-xl border bg-white p-6 text-left shadow-lg">
               <h2 className="text-2xl font-bold text-blue-900">Admin Dashboard</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Kelola reservasi, approve/reject, dan monitor aktivitas
-              </p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={handleAdminRedirect}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Buka Admin Dashboard
-                </button>
-              </div>
+              <button
+                onClick={handleAdminRedirect}
+                className="mt-4 rounded-lg bg-blue-600 px-6 py-2 text-white"
+              >
+                Buka Admin Dashboard
+              </button>
             </div>
           ) : null}
 
-          <h1 className="text-4xl font-bold leading-tight text-blue-900 sm:text-5xl">
-            Reservasi Kunjungan ATP IPB
+          {/* HEADLINE */}
+          <h1 className="text-4xl font-bold text-blue-900 sm:text-5xl">
+            Wisata Edukasi dan Inovasi<br/> 
+            Pertanian di ATP IPB
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-            Sistem reservasi online untuk kunjungan Agribusiness and Technology Park
-            IPB.
+
+          <p className="mx-auto mt-4 max-w-2xl text-slate-600">
+            Jelajahi fasilitas Agribusiness Technology Park, lihat produk unggulan,<br/>
+            dan lakukan reservasi kunjungan secara online dengan mudah.
           </p>
-          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+
+          {/* BUTTON */}
+          <div className="mt-8 flex justify-center gap-4">
             <button
-              type="button"
               onClick={() => void handleReservasi()}
-              className="inline-flex rounded-lg bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow transition-all hover:scale-105 hover:bg-blue-800"
+              className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
             >
               Reservasi Sekarang
             </button>
+
             <Link
               href="/reservasi/riwayat"
-              className="inline-flex rounded-lg border border-blue-600 px-6 py-3 text-sm font-semibold text-blue-700 transition-all hover:scale-105 hover:bg-blue-100"
+              className="rounded-lg border border-blue-600 px-6 py-3 text-blue-700 hover:bg-blue-100"
             >
-              Cek Riwayat Reservasi
+              Cek Riwayat
             </Link>
           </div>
+
         </div>
       </section>
 
-      <section id="tentang" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
-          <h2 className="text-2xl font-bold text-blue-900">Tentang ATP IPB</h2>
-          <p className="mt-3 text-slate-600">
-            ATP IPB adalah pusat pengembangan agribisnis dan teknologi yang
-            mengintegrasikan pembelajaran, riset, dan implementasi inovasi untuk
-            masyarakat.
-          </p>
-          <ul className="mt-5 space-y-2 text-slate-700">
-            <li>- Sarana edukasi pertanian modern untuk pelajar, mahasiswa, dan umum.</li>
-            <li>- Fasilitas penelitian terapan untuk inovasi agribisnis berkelanjutan.</li>
-            <li>- Destinasi wisata edukatif berbasis teknologi dan lingkungan.</li>
-          </ul>
-        </div>
-      </section>
+      <section
+        id="tentang"
+        className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6"
+      >
+        <div className="grid items-center gap-10 rounded-2xl bg-blue-50 p-8 shadow-sm ring-1 ring-slate-200 md:grid-cols-2">
 
-      <section id="fasilitas" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-4 sm:px-6">
-        <h2 className="text-center text-2xl font-bold text-blue-900">Fasilitas Unggulan</h2>
-        <p className="mx-auto mt-2 max-w-2xl text-center text-slate-600">
-          Jelajahi fasilitas utama ATP IPB untuk kunjungan edukatif dan penelitian.
-        </p>
+          {/* TEXT SIDE */}
+          <div className="flex flex-col gap-6">
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {fasilitasItems.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md"
+            <h2 className="text-4xl font-bold text-blue-900 sm:text-5xl leading-tight">
+              Tentang ATP
+            </h2>
+
+            <p className="text-base leading-relaxed text-slate-700">
+              Agribusiness and Technology Park (ATP) IPB merupakan pusat pengembangan
+              pertanian modern yang menggabungkan edukasi, inovasi, dan produksi.
+              ATP menyediakan fasilitas pembelajaran, kunjungan edukatif, serta produk
+              pertanian unggulan.
+            </p>
+
+            <button
+              type="button"
+              className="w-fit rounded-full bg-blue-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-sm font-bold text-blue-800">
-                {item.icon}
+              Detail Profil
+            </button>
+
+          </div>
+
+          {/* IMAGE SIDE */}
+          <div className="relative h-[300px] w-full overflow-hidden rounded-xl md:h-[420px]">
+            <Image
+              src="/tentang-image.png"
+              alt="ATP IPB"
+              fill
+              className="object-cover"
+            />
+          </div>
+
+        </div>
+      </section>
+
+      <section
+        id="fasilitas"
+        className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6"
+      >
+        {/* HEADER */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-blue-900 sm:text-4xl">
+            Fasilitas
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+            Jelajahi fasilitas utama ATP IPB <br/>
+            untuk kunjungan edukatif dan penelitian
+          </p>
+        </div>
+
+        {/* GRID */}
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+
+          {facilities.map((item) => (
+            <article
+              key={item.id}
+              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+            >
+              {/* IMAGE */}
+              <div className="relative h-[220px] w-full overflow-hidden">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition duration-500 group-hover:scale-105"
+                />
               </div>
-              <h3 className="mt-4 text-base font-semibold text-slate-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+
+              {/* CONTENT */}
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-base font-semibold text-slate-900">
+                    {item.title}
+                  </h3>
+
+                  <div className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs text-slate-700">
+                    👤 {item.capacity}
+                  </div>
+                </div>
+
+                <p className="mt-2 text-sm text-slate-600">
+                  {item.description}
+                </p>
+
+                {/* BUTTON */}
+                <button
+                  className="mt-4 w-full rounded-full bg-blue-700 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
+                >
+                  Detail
+                </button>
+              </div>
             </article>
           ))}
+
+        </div>
+
+        {/* FOOTER BUTTON */}
+        <div className="mt-12 flex justify-center">
+          <button className="rounded-full bg-blue-700 px-8 py-3 text-white font-semibold hover:bg-blue-800">
+            Lihat Semua Fasilitas
+          </button>
         </div>
       </section>
 
-      <section id="produk" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
-          <h2 className="text-2xl font-bold text-blue-900">Produk ATP IPB</h2>
-          <p className="mt-3 text-slate-600">
-            Section produk akan menampilkan katalog produk unggulan ATP IPB.
-            Konten detail produk bisa ditambahkan pada tahap berikutnya.
-          </p>
-        </div>
-      </section>
+
+    <section
+      id="produk"
+      className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6"
+    >
+      {/* HEADER */}
+      <div className="text-center">
+        <p className="text-sm text-slate-600">Paling Populer</p>
+        <h2 className="text-3xl font-bold text-blue-900 sm:text-4xl">
+          Produk Kami
+        </h2>
+      </div>
+
+      {/* GRID */}
+      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+        {products.map((item) => (
+          <article
+            key={item.id}
+            className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            {/* IMAGE */}
+            <div className="relative h-[180px] w-full overflow-hidden">
+              <Image
+                src={item.image}
+                alt={item.title}
+                fill
+                className="object-cover transition duration-500 group-hover:scale-105"
+              />
+            </div>
+
+            {/* CONTENT */}
+            <div className="p-4">
+              <h3 className="text-base font-semibold text-slate-900">
+                {item.title}
+              </h3>
+
+              <p className="mt-1 text-lg font-bold text-slate-900">
+                {item.price}
+              </p>
+
+              {/* rating */}
+              <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                ⭐⭐⭐⭐⭐
+                <span>({item.reviews})</span>
+              </div>
+
+              {/* BUTTON */}
+              <button className="mt-4 w-full rounded-full bg-blue-700 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+                Lihat Detail
+              </button>
+            </div>
+          </article>
+        ))}
+
+      </div>
+
+      {/* FOOTER BUTTON */}
+      <div className="mt-12 flex justify-center">
+        <button className="rounded-full bg-blue-700 px-8 py-3 font-semibold text-white hover:bg-blue-800">
+          Produk Lainnya
+        </button>
+      </div>
+
+    </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="text-center text-2xl font-bold text-blue-900">Cara Reservasi</h2>
@@ -328,7 +531,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="kontak" className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
+      {/* <section id="kontak" className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
         <div className="rounded-2xl bg-blue-900 p-6 text-blue-50 shadow-sm sm:p-8">
           <h2 className="text-2xl font-bold">Kontak ATP IPB</h2>
           <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
@@ -344,13 +547,78 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-      </section>
+      </section> */}
+      <footer className="bg-blue-900 text-white">
+      
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-12 md:grid-cols-3">
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 text-center text-sm text-slate-500 sm:px-6">
-          {new Date().getFullYear()} ATP IPB Reservation System. All rights reserved.
+        {/* BRAND */}
+        <div>
+          <h2 className="text-xl font-bold">
+            Agribusiness and Technology Park
+          </h2>
+          <p className="mt-3 text-sm text-white/80">
+            Pusat inovasi dan edukasi pertanian modern IPB University
+          </p>
         </div>
-      </footer>
+
+        {/* CONTACT */}
+        <div>
+          <h3 className="text-lg font-semibold">Kontak Kami</h3>
+
+          <div className="mt-4 space-y-3 text-sm text-white/80">
+            {contactItems.map((item) => (
+              <div key={item.label}>
+                <p className="font-semibold text-white">{item.label}</p>
+
+                {item.href ? (
+                  <a
+                    href={item.href}
+                    className="hover:underline"
+                  >
+                    {item.value}
+                  </a>
+                ) : (
+                  <p>{item.value}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* QUICK LINKS + SOCIAL */}
+        <div>
+          <h3 className="text-lg font-semibold">Quick Links</h3>
+
+          <div className="mt-4 space-y-2 text-sm text-white/80">
+            {quickLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="block hover:text-white hover:underline"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          {/* SOCIAL */}
+          <div className="mt-6">
+            <a href="#" className="inline-flex items-center gap-2">
+              <Image src="logo.svg" alt="Instagram" width={20} height={20} />
+              <span className="text-sm">Instagram</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* BOTTOM BAR */}
+      <div className="border-t border-white/20 py-4 text-center text-xs text-white/70">
+        {new Date().getFullYear()} ATP IPB Reservation System. All rights reserved.
+      </div>
+    </footer>
+
+
     </main>
   )
 }
