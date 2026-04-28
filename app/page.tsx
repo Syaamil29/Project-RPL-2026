@@ -450,7 +450,7 @@ export default function HomePage() {
 
     <section
       id="produk"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6"
+      className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-5 sm:px-6"
     >
       {/* HEADER */}
       <div className="text-center">
@@ -510,11 +510,10 @@ export default function HomePage() {
           Produk Lainnya
         </button>
       </div>
-
     </section>
 
-      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
-        <h2 className="text-center text-2xl font-bold text-blue-900">Cara Reservasi</h2>
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
+        <h2 className="text-center text-4xl font-bold text-blue-900">Cara Reservasi</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {langkahReservasi.map((item) => (
             <article
