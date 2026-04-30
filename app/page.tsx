@@ -206,6 +206,15 @@ export default function HomePage() {
     router.push("/admin/reservasi")
   }
 
+  const [productList, setProductList] = useState([
+  { id: 1, nama: "Beras Organik", stock: 15, src: "/beras.png"},
+  { id: 2, nama: "Kacang Organik", stock: 15, src: "/kacang.jpg" },
+  { id: 3, nama: "Bayam Organik", stock: 15, src: "/bayam.jpg" },
+  { id: 4, nama: "Wortel Manis", stock: 25, src: "/wortel.jpg" },
+  { id: 5, nama: "Tomat Ceri", stock: 10, src: "/tomat.jpg" },
+  { id: 6, nama: "Sayur Kale", stock: 5, src: "/kale.jpg" }
+]);
+
   return (
     <main id="beranda" className="min-h-screen bg-slate-50 text-slate-800">
       <style jsx global>{`
@@ -447,70 +456,46 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="produk" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
+          <h2 className="text-2xl font-bold text-blue-900">Produk ATP IPB</h2>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {productList.map((item) => (
+              <Link
+                key={item.id}
+                href={`/katalog/${item.id}`}
+                className="flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              >
+                <div className="aspect-square w-full overflow-hidden rounded-xl bg-slate-100">
+                  <img
+                    src={item.src}
+                    alt={item.nama}
+                    className="h-full w-full object-cover transition-transform hover:scale-105"
+                  />
+                </div>
 
-    <section
-      id="produk"
-      className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-5 sm:px-6"
-    >
-      {/* HEADER */}
-      <div className="text-center">
-        <p className="text-sm text-slate-600">Paling Populer</p>
-        <h2 className="text-3xl font-bold text-blue-900 sm:text-4xl">
-          Produk Kami
-        </h2>
-      </div>
-
-      {/* GRID */}
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-
-        {products.map((item) => (
-          <article
-            key={item.id}
-            className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-          >
-            {/* IMAGE */}
-            <div className="relative h-[180px] w-full overflow-hidden">
-              <Image
-                src={item.image}
-                alt={item.title}
-                fill
-                className="object-cover transition duration-500 group-hover:scale-105"
-              />
-            </div>
-
-            {/* CONTENT */}
-            <div className="p-4">
-              <h3 className="text-base font-semibold text-slate-900">
-                {item.title}
-              </h3>
-
-              <p className="mt-1 text-lg font-bold text-slate-900">
-                {item.price}
-              </p>
-
-              {/* rating */}
-              <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
-                ⭐⭐⭐⭐⭐
-                <span>({item.reviews})</span>
-              </div>
-
-              {/* BUTTON */}
-              <button className="mt-4 w-full rounded-full bg-blue-700 py-2 text-sm font-semibold text-white hover:bg-blue-800">
-                Lihat Detail
-              </button>
-            </div>
-          </article>
-        ))}
-
-      </div>
-
-      {/* FOOTER BUTTON */}
-      <div className="mt-12 flex justify-center">
-        <button className="rounded-full bg-blue-700 px-8 py-3 font-semibold text-white hover:bg-blue-800">
-          Produk Lainnya
-        </button>
-      </div>
-    </section>
+                <div className="mt-4 flex flex-col flex-grow justify-between">
+                  <h3 className="text-base font-bold text-slate-900 line-clamp-2">{item.nama}</h3>
+                  <p className="mt-1 text-sm font-medium text-slate-600">Stok: {item.stock}</p>
+                  <span className="mt-3 text-sm font-semibold text-blue-800">Lihat detail →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-6 w-full text-center">
+            <Link
+              href="/katalog"
+              className="inline-block text-xl font-bold text-slate-900 transition-all hover:text-slate-900 hover:underline hover:underline-offset-4"
+            >
+              Selengkapnya
+            </Link>
+          </div>
+          {/* <p className="mt-3 text-slate-600">
+            Section produk akan menampilkan katalog produk unggulan ATP IPB.
+            Konten detail produk bisa ditambahkan pada tahap berikutnya.
+          </p> */}
+        </div>
+      </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
         <h2 className="text-center text-4xl font-bold text-blue-900">Cara Reservasi</h2>
