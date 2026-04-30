@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
-import { KatalogFooter } from "@/components/KatalogFooter"
-import { KatalogHeader } from "@/components/KatalogHeader"
+// import { KatalogFooter } from "@/components/KatalogFooter"
+// import { KatalogHeader } from "@/components/KatalogHeader"
 import {
   CATALOG_PRODUCTS,
   getCatalogProductById,
@@ -49,7 +49,7 @@ export default async function KatalogProductDetailPage({ params }: Props) {
   if (!product) {
     return (
       <main className="flex min-h-screen flex-col bg-slate-50">
-        <KatalogHeader />
+        {/* <KatalogHeader /> */}
         <section className="mx-auto w-full max-w-6xl flex-grow px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-lg rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
             <h1 className="text-xl font-bold text-slate-900">Produk tidak ditemukan</h1>
@@ -62,14 +62,14 @@ export default async function KatalogProductDetailPage({ params }: Props) {
             </Link>
           </div>
         </section>
-        <KatalogFooter />
+        {/* <KatalogFooter /> */}
       </main>
     )
   }
 
   return (
     <main className="flex min-h-screen flex-col bg-slate-50">
-      <KatalogHeader />
+      {/* <KatalogHeader /> */}
       <section className="mx-auto w-full max-w-6xl flex-grow px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-3xl">
           <Link
@@ -107,7 +107,7 @@ export default async function KatalogProductDetailPage({ params }: Props) {
           </article>
         </div>
       </section>
-      <KatalogFooter />
+      {/* <KatalogFooter /> */}
     </main>
   )
 }

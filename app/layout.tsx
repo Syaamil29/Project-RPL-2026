@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// import Navbar from "@/components/Navbar";
-// import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "ATP IPB",
@@ -15,10 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body className="min-h-screen flex flex-col">
-        {/* <Navbar /> */}
-        <main className="flex-1">{children}</main>
-        {/* <Footer /> */}
+      {/* Lapis 1 hanya mengatur kerangka dasar HTML dan Body */}
+      <body className="min-h-screen flex flex-col bg-white">
+        {children} 
       </body>
     </html>
   );
