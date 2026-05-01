@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useCallback } from "react" // Tambah useCallback
+import { useEffect, useState, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { isAdmin } from "@/lib/auth"
 
@@ -16,21 +16,24 @@ const menuItems = [
 export default function Header() {
   const router = useRouter()
   const [activeSection, setActiveSection] = useState("home")
+  
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  
+  const [isAdminUser, setIsAdminUser] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
 
-  // 1. Pindahkan handleRouting ke useCallback agar tidak berubah-ubah setiap render
   const handleRouting = useCallback((email: string | null) => {
     if (!email) return;
 
     const adminStatus = isAdmin(email);
+    setIsAdminUser(adminStatus);
 
-    // Cek apakah ada niat login (intent) yang tersimpan
     const intent = sessionStorage.getItem("loginIntent");
 
     if (adminStatus) {
       sessionStorage.removeItem("loginIntent");
-      // Hanya push jika saat ini tidak di halaman admin untuk mencegah loop
       if (window.location.pathname !== "/admin") {
         router.push("/admin");
       }
@@ -40,7 +43,6 @@ export default function Header() {
     }
   }, [router]);
 
-  // 2. Logika Scroll Spy (Tetap sama)
   useEffect(() => {
     const sections = ["home", "tentang", "fasilitas", "produk"]
       .map((id) => document.getElementById(id))
@@ -57,21 +59,40 @@ export default function Header() {
       setActiveSection(current)
     }
 
+    onScroll(); 
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, []);
 
-  // 3. Logika Autentikasi yang AMAN
   useEffect(() => {
     let isMounted = true;
 
     const getInitialAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (isMounted) {
-        const email = session?.user?.email ?? null;
-        setUserEmail(email);
-        if (email) handleRouting(email);
-        setAuthLoading(false);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+
+        if (isMounted) {
+          const email = user?.email ?? null;
+          const name = user?.user_metadata?.full_name ?? email?.split('@')[0] ?? null; 
+          const avatar = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null; 
+          
+          setUserEmail(email);
+          setUserName(name);
+          setUserAvatar(avatar);
+          
+          if (email) {
+            setIsAdminUser(isAdmin(email));
+            handleRouting(email);
+          }
+        }
+      } catch (error) {
+        // Abaikan silent failure saat user menekan 'Back' secara paksa
+      } finally {
+        // Pastikan loading state selalu dilepas apapun kondisinya
+        if (isMounted) {
+          setAuthLoading(false);
+        }
       }
     };
 
@@ -80,12 +101,19 @@ export default function Header() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (isMounted) {
         const email = session?.user?.email ?? null;
+        const name = session?.user?.user_metadata?.full_name ?? email?.split('@')[0] ?? null;
+        const avatar = session?.user?.user_metadata?.avatar_url ?? session?.user?.user_metadata?.picture ?? null;
+
         setUserEmail(email);
+        setUserName(name);
+        setUserAvatar(avatar);
+        setIsAdminUser(email ? isAdmin(email) : false);
         
-        // Hanya jalankan routing jika terjadi event SIGN_IN
         if (event === "SIGNED_IN" && email) {
           handleRouting(email);
         }
+        
+        // Pindahkan ke luar agar selalu tereksekusi saat state berubah
         setAuthLoading(false);
       }
     });
@@ -94,10 +122,13 @@ export default function Header() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [handleRouting]); // Sekarang dependensi ini stabil
+  }, [handleRouting]);
 
   const handleLogout = async () => {
     setUserEmail(null);
+    setUserName(null);
+    setUserAvatar(null);
+    setIsAdminUser(false);
     await supabase.auth.signOut();
     router.push("/");
   };
@@ -110,10 +141,9 @@ export default function Header() {
     });
   };
 
-  // Fungsi reusable untuk tombol reservasi/riwayat
   const handleProtectedAction = async (targetPath: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       sessionStorage.setItem("loginIntent", targetPath);
       await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -166,12 +196,40 @@ export default function Header() {
           <div className="h-5 border-l border-gray-300"></div>
 
           {!authLoading && (
-            userEmail ? (
+            userName ? ( 
               <div className="flex items-center gap-4">
-                <span className="text-xs text-slate-500 hidden lg:inline">{userEmail}</span>
+                <div className="flex items-center gap-3 hidden lg:flex">
+                  
+                  {/* BAGIAN FOTO PROFIL SAJA */}
+                  <div 
+                    className="h-9 w-9 overflow-hidden rounded-full border border-gray-200 flex-shrink-0 cursor-pointer transition hover:ring-2 hover:ring-[#2D24B5] hover:ring-offset-2" 
+                    title={userName} // Tampilkan nama saat di-hover
+                  >
+                    {userAvatar ? (
+                      <img 
+                        src={userAvatar} 
+                        alt={userName} 
+                        className="h-full w-full object-cover"
+                        referrerPolicy="no-referrer" 
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-100 text-sm font-bold text-slate-600">
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* BADGE ADMIN (Langsung di sebelah avatar jika admin) */}
+                  {isAdminUser && (
+                    <span className="rounded bg-blue-100 px-2 py-1 text-[10px] font-bold text-[#2D24B5]">
+                      Admin
+                    </span>
+                  )}
+
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="rounded-full bg-red-600 px-6 py-2 text-sm font-semibold text-white transition-all hover:bg-red-700"
+                  className="rounded-full bg-red-50 text-red-600 border border-red-100 px-5 py-2 text-sm font-semibold transition-all hover:bg-red-600 hover:text-white"
                 >
                   Logout
                 </button>

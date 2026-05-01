@@ -112,7 +112,10 @@ export default function HomePage() {
                 Tentang ATP
               </h2>
               <p className="font-body text-sm md:text-base leading-relaxed text-slate-700">
-                Agribusiness and Technology Park (ATP) IPB merupakan pusat pengembangan pertanian modern yang menggabungkan edukasi, inovasi, dan produksi.
+                Agribusiness and Technology Park (ATP) IPB merupakan pusat pengembangan
+              pertanian modern yang menggabungkan edukasi, inovasi, dan produksi.
+              ATP menyediakan fasilitas pembelajaran, kunjungan edukatif, serta produk
+              pertanian unggulan.
               </p>
               <Link href="/profil" className="font-body w-fit mt-2 rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
                 Detail Profil
@@ -128,7 +131,16 @@ export default function HomePage() {
       {/* FASILITAS SECTION */}
       <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
         <div className="text-center">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">Fasilitas</h2>
+          {/* Menggunakan styling judul dari Kode 1 */}
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
+            Fasilitas
+          </h2>
+          
+          {/* Menggunakan teks deskripsi dengan styling yang konsisten dengan Hero Section */}
+          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+            Jelajahi fasilitas utama ATP IPB <br/>
+            untuk kunjungan edukatif dan penelitian
+          </p>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {facilities.map((item) => (
@@ -148,6 +160,12 @@ export default function HomePage() {
               </div>
             </article>
           ))}
+        </div>
+        {/* FOOTER BUTTON */}
+        <div className="mt-12 flex justify-center">
+          <button className="rounded-full bg-blue-700 px-8 py-3 text-white font-semibold hover:bg-blue-800">
+            Lihat Semua Fasilitas
+          </button>
         </div>
       </section>
 
