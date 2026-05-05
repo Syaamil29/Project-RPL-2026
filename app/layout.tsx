@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      {/* Lapis 1 hanya mengatur kerangka dasar HTML dan Body */}
+      {/*  dasar HTML dan Body */}
       <body className="min-h-screen flex flex-col bg-white">
         {children} 
       </body>

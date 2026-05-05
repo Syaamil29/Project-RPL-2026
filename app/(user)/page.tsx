@@ -28,7 +28,6 @@ export default function HomePage() {
     { id: 4, nama: "Wortel Manis", stock: 25, src: "/wortel.jpg" },
   ]);
 
-  // Fungsi khusus untuk tombol reservasi di area Hero
   const handleReservasiHero = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -42,7 +41,6 @@ export default function HomePage() {
     }
   };
 
-  // FUNGSI BARU: Fungsi khusus untuk tombol Cek Riwayat
   const handleCekRiwayat = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -92,7 +90,7 @@ export default function HomePage() {
             >
               Reservasi Sekarang
             </button>
-            {/* PERUBAHAN: Tag <Link> diganti jadi <button> dengan fungsi handleCekRiwayat */}
+            {/*  fungsi handleCekRiwayat */}
             <button
               onClick={() => void handleCekRiwayat()}
               className="rounded-full border border-[#2D24B5] bg-white px-8 py-3 text-sm md:text-base font-semibold text-[#2D24B5] transition-all hover:bg-blue-50"
@@ -131,12 +129,12 @@ export default function HomePage() {
       {/* FASILITAS SECTION */}
       <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
         <div className="text-center">
-          {/* Menggunakan styling judul dari Kode 1 */}
+          {/* */}
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
             Fasilitas
           </h2>
           
-          {/* Menggunakan teks deskripsi dengan styling yang konsisten dengan Hero Section */}
+          {/* */}
           <p className="mx-auto mt-3 max-w-2xl text-slate-600">
             Jelajahi fasilitas utama ATP IPB <br/>
             untuk kunjungan edukatif dan penelitian

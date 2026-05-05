@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
-// Sesuaikan kapitalisasi dengan gambar (Title Case)
 const menuItems = [
   { label: "Dashboard", href: "/admin" },
   { label: "Profil", href: "/admin/profil" },
@@ -22,17 +21,15 @@ export default function AdminNavbar() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
 
-  // Ambil data foto profil Google dari Supabase Session
 // Ambil data foto profil Google dari Supabase Session
   useEffect(() => {
     let isMounted = true;
     
     const fetchUser = async () => {
       try {
-        // Pindahkan ke dalam blok try
         const { data: { user }, error } = await supabase.auth.getUser();
         
-        if (error) throw error; // Lempar error jika ada masalah lain
+        if (error) throw error;
 
         if (user && isMounted) {
           const name = user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? "Admin";
@@ -42,7 +39,6 @@ export default function AdminNavbar() {
           setUserAvatar(avatar);
         }
       } catch (err: any) {
-        // Tangkap error "lock" agar tidak membuat aplikasi crash
         if (err?.message?.includes("stole it") || err?.name === "LockAcquisitionError") {
           console.warn("Supabase lock warning diabaikan.");
         } else {
@@ -81,7 +77,6 @@ export default function AdminNavbar() {
         {/* NAVIGASI MENU */}
         <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
           {menuItems.map((item) => {
-            // Logika active: exact match untuk dashboard, startsWith untuk sisanya
             const isActive = 
               item.href === "/admin" 
                 ? pathname === "/admin" 
@@ -120,7 +115,6 @@ export default function AdminNavbar() {
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                // Fallback icon seperti di gambar referensi (Icon User default)
                 <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
@@ -143,7 +137,7 @@ export default function AdminNavbar() {
 
         </div>
 
-        {/* Tombol Mobile Menu (Opsional jika layar kecil) */}
+        {/* Tombol Mobile Menu */}
         <button
           type="button"
           className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 md:hidden"
