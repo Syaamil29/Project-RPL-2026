@@ -2,25 +2,16 @@ import Link from "next/link"
 
 const adminMenus = [
   {
-    icon: "📋",
     title: "Reservasi",
     description: "Kelola approval/reject reservasi",
     href: "/admin/reservasi",
     cta: "Buka Reservasi",
   },
   {
-    icon: "🛠️",
     title: "Landing Page",
     description: "Edit konten fasilitas, produk, dan profil",
     href: "/admin",
     cta: "Kelola Landing",
-  },
-  {
-    icon: "📊",
-    title: "Statistik",
-    description: "Pantau ringkasan performa dan laporan kunjungan",
-    href: "#",
-    cta: "Segera Hadir",
   },
 ] as const
 
@@ -39,7 +30,6 @@ export default function AdminPage() {
               key={menu.title}
               className="rounded-xl border border-slate-100 bg-white p-6 shadow-md transition duration-200 hover:scale-[1.01] hover:shadow-lg"
             >
-              <p className="text-2xl">{menu.icon}</p>
               <h2 className="mt-3 text-xl font-semibold text-slate-900">{menu.title}</h2>
               <p className="mt-2 text-sm text-slate-600">{menu.description}</p>
               <Link
