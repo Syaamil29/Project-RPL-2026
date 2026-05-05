@@ -26,6 +26,8 @@ type ReservationForm = {
   nomorTelepon: string
   tanggalKunjungan: string
   sesiKunjungan: "pagi" | "siang" | ""
+  jumlahOrang: string
+  tujuanKunjungan: string
 }
 
 const initialForm: ReservationForm = {
@@ -35,6 +37,8 @@ const initialForm: ReservationForm = {
   nomorTelepon: "",
   tanggalKunjungan: "",
   sesiKunjungan: "",
+  jumlahOrang: "",
+  tujuanKunjungan: "",
 }
 
 export default function ReservasiPage() {
@@ -142,11 +146,15 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
   }
 
   const payload = {
+    user_id: session.user.id,
     nama_lengkap: form.namaLengkap,
+    instansi: form.instansi,
     email: form.email,
     nomor_telepon: form.nomorTelepon,
     tanggal_kunjungan: form.tanggalKunjungan,
     sesi_kunjungan: sesiMap[form.sesiKunjungan],
+    jumlah_orang: form.jumlahOrang ? parseInt(form.jumlahOrang, 10) : null,
+    tujuan_kunjungan: form.tujuanKunjungan,
     fasilitas: selectedFacilities,
     status: "pending",
     dokumen_url: dokumenUrl,
@@ -343,6 +351,43 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                   className={inputClassName}
                   value={form.tanggalKunjungan}
                   onChange={handleChange("tanggalKunjungan")}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="jumlah_orang"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                >
+                  Jumlah Orang
+                </label>
+                <input
+                  id="jumlah_orang"
+                  name="jumlah_orang"
+                  type="number"
+                  min="1"
+                  placeholder="Misal: 5"
+                  className={inputClassName}
+                  value={form.jumlahOrang}
+                  onChange={handleChange("jumlahOrang")}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="tujuan_kunjungan"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                >
+                  Tujuan Kunjungan
+                </label>
+                <textarea
+                  id="tujuan_kunjungan"
+                  name="tujuan_kunjungan"
+                  rows={3}
+                  placeholder="Ceritakan singkat tujuan kunjungan Anda"
+                  className={inputClassName}
+                  value={form.tujuanKunjungan}
+                  onChange={(e) => setForm((prev) => ({ ...prev, tujuanKunjungan: e.target.value }))}
                 />
               </div>
 

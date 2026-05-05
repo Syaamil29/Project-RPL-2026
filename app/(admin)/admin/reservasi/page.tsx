@@ -11,8 +11,9 @@ type ReservationRow = {
   email: string
   nomor_telepon: string
   tanggal_kunjungan: string
-  sesi_kunjungan: "pagi" | "siang" | null
+  sesi_kunjungan: "Pagi" | "Siang" | null
   jumlah_orang: number | null
+  tujuan_kunjungan: string | null
   fasilitas: string[] | null
   status: ReservationStatus | null
   dokumen_url: string | null
@@ -20,8 +21,8 @@ type ReservationRow = {
 }
 
 const getSesiLabel = (sesi: ReservationRow["sesi_kunjungan"]) => {
-  if (sesi === "pagi") return "Pagi (08:00 - 12:00)"
-  if (sesi === "siang") return "Siang (13:00 - 16:00)"
+  if (sesi === "Pagi") return "Pagi (08:00 - 12:00)"
+  if (sesi === "Siang") return "Siang (13:00 - 16:00)"
   return "-"
 }
 
@@ -44,7 +45,7 @@ export default function AdminReservasiPage() {
     const { data, error: fetchError } = await supabase
       .from("reservasi")
       .select(
-        "id, nama_lengkap, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, fasilitas, status, dokumen_url, created_at"
+        "id, nama_lengkap, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, tujuan_kunjungan, fasilitas, status, dokumen_url, created_at"
       )
       .order("created_at", { ascending: false })
 
@@ -114,6 +115,7 @@ export default function AdminReservasiPage() {
               <th className="px-3 py-4">Tanggal</th>
               <th className="px-3 py-4">Sesi</th>
               <th className="px-3 py-4">Jumlah Orang</th>
+              <th className="px-3 py-4">Tujuan</th>
               <th className="px-3 py-4">Fasilitas</th>
               <th className="px-3 py-4">Status</th>
               <th className="px-3 py-4">Dokumen</th>
@@ -140,6 +142,7 @@ export default function AdminReservasiPage() {
                     {getSesiLabel(item.sesi_kunjungan)}
                   </td>
                   <td className="px-3 py-4 text-sm text-slate-700">{item.jumlah_orang ?? "-"}</td>
+                  <td className="px-3 py-4 text-sm text-slate-700">{item.tujuan_kunjungan ?? "-"}</td>
                   <td className="px-3 py-4">
                     <div className="flex flex-wrap gap-1.5">
                       {item.fasilitas?.length ? (

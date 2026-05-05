@@ -12,8 +12,9 @@ type ReservationRow = {
   email: string
   nomor_telepon: string
   tanggal_kunjungan: string
-  sesi_kunjungan: "pagi" | "siang" | null
+  sesi_kunjungan: "Pagi" | "Siang" | null
   jumlah_orang: number | null
+  tujuan_kunjungan: string | null
   fasilitas: string[] | null
   status: ReservationStatus | null
   dokumen_url: string | null
@@ -34,8 +35,8 @@ const filterTabs: { label: string; value: StatusFilter }[] = [
 ]
 
 function getSesiLabel(sesi: ReservationRow["sesi_kunjungan"]) {
-  if (sesi === "pagi") return "Pagi (08:00 - 12:00)"
-  if (sesi === "siang") return "Siang (13:00 - 16:00)"
+  if (sesi === "Pagi") return "Pagi (08:00 - 12:00)"
+  if (sesi === "Siang") return "Siang (13:00 - 16:00)"
   return "-"
 }
 
@@ -43,7 +44,6 @@ export default function RiwayatReservasiPage() {
   const [reservations, setReservations] = useState<ReservationRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [emailFilter, setEmailFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
 
   useEffect(() => {
@@ -51,11 +51,20 @@ export default function RiwayatReservasiPage() {
       setLoading(true)
       setError(null)
 
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        setError("Anda belum login.")
+        setLoading(false)
+        return
+      }
+
       const { data, error: fetchError } = await supabase
         .from("reservasi")
         .select(
-          "id, nama_lengkap, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, fasilitas, status, dokumen_url, created_at"
+          "id, nama_lengkap, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, tujuan_kunjungan, fasilitas, status, dokumen_url, created_at"
         )
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
 
       if (fetchError) {
@@ -73,20 +82,17 @@ export default function RiwayatReservasiPage() {
   }, [])
 
   const filteredReservations = useMemo(() => {
-    const email = emailFilter.trim().toLowerCase()
-
     return reservations.filter((item) => {
       const normalizedStatus: ReservationStatus =
         item.status === "approved" || item.status === "rejected"
           ? item.status
           : "pending"
 
-      const isEmailMatch = email ? item.email.toLowerCase().includes(email) : true
       const isStatusMatch = statusFilter === "all" ? true : normalizedStatus === statusFilter
 
-      return isEmailMatch && isStatusMatch
+      return isStatusMatch
     })
-  }, [emailFilter, reservations, statusFilter])
+  }, [reservations, statusFilter])
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-10 sm:px-6">
@@ -97,23 +103,6 @@ export default function RiwayatReservasiPage() {
             Cek status pengajuan reservasi Anda
           </p>
         </header>
-
-        <div className="mb-4">
-          <label
-            htmlFor="emailFilter"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
-          >
-            Masukkan email untuk melihat riwayat reservasi
-          </label>
-          <input
-            id="emailFilter"
-            type="text"
-            value={emailFilter}
-            onChange={(event) => setEmailFilter(event.target.value)}
-            placeholder="contoh@email.com"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-          />
-        </div>
 
         <div className="mb-6 flex flex-wrap gap-2">
           {filterTabs.map((tab) => {
@@ -160,6 +149,7 @@ export default function RiwayatReservasiPage() {
                   <th className="px-3 py-4">Tanggal</th>
                   <th className="px-3 py-4">Sesi</th>
                   <th className="px-3 py-4">Jumlah Orang</th>
+                  <th className="px-3 py-4">Tujuan</th>
                   <th className="px-3 py-4">Fasilitas</th>
                   <th className="px-3 py-4">Status</th>
                   <th className="px-3 py-4">Dokumen</th>
@@ -185,6 +175,9 @@ export default function RiwayatReservasiPage() {
                       </td>
                       <td className="px-3 py-4 text-sm text-slate-700">
                         {item.jumlah_orang ?? "-"}
+                      </td>
+                      <td className="px-3 py-4 text-sm text-slate-700">
+                        {item.tujuan_kunjungan ?? "-"}
                       </td>
                       <td className="px-3 py-4">
                         <div className="flex flex-wrap gap-1.5">
