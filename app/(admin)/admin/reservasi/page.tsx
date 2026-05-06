@@ -8,6 +8,7 @@ type ReservationStatus = "pending" | "approved" | "rejected"
 type ReservationRow = {
   id: string
   nama_lengkap: string
+  instansi: string | null
   email: string
   nomor_telepon: string
   tanggal_kunjungan: string
@@ -45,7 +46,7 @@ export default function AdminReservasiPage() {
     const { data, error: fetchError } = await supabase
       .from("reservasi")
       .select(
-        "id, nama_lengkap, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, tujuan_kunjungan, fasilitas, status, dokumen_url, created_at"
+        "id, nama_lengkap, instansi, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, tujuan_kunjungan, fasilitas, status, dokumen_url, created_at"
       )
       .order("created_at", { ascending: false })
 
@@ -110,6 +111,7 @@ export default function AdminReservasiPage() {
           <thead>
             <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
               <th className="px-3 py-4">Nama</th>
+              <th className="px-3 py-4">Instansi</th>
               <th className="px-3 py-4">Email</th>
               <th className="px-3 py-4">Nomor Telepon</th>
               <th className="px-3 py-4">Tanggal</th>
@@ -135,6 +137,7 @@ export default function AdminReservasiPage() {
                   <td className="px-3 py-4 text-sm font-medium text-slate-800">
                     {item.nama_lengkap}
                   </td>
+                  <td className="px-3 py-4 text-sm text-slate-700">{item.instansi ?? "-"}</td>
                   <td className="px-3 py-4 text-sm text-slate-700">{item.email}</td>
                   <td className="px-3 py-4 text-sm text-slate-700">{item.nomor_telepon}</td>
                   <td className="px-3 py-4 text-sm text-slate-700">{item.tanggal_kunjungan}</td>
