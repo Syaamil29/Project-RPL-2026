@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type TouchEvent, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { CATALOG_PRODUCTS } from "@/lib/catalog-products";
+import { DATA_PROFIL_ATP } from '@/src/modules/profil/data';
 
 const facilities = [
   { id: 1, title: "Green House Nursery", description: "Belajar budidaya tanaman dengan teknologi modern.", capacity: 20, image: "/images-1-facilities.png" },
@@ -139,12 +140,11 @@ export default function HomePage() {
               <h2 className="font-heading text-4xl font-bold text-[#1F17A1] sm:text-5xl leading-tight">
                 Tentang ATP
               </h2>
+              
               <p className="font-body text-sm md:text-base leading-relaxed text-slate-700">
-                Agribusiness and Technology Park (ATP) IPB merupakan pusat pengembangan
-              pertanian modern yang menggabungkan edukasi, inovasi, dan produksi.
-              ATP menyediakan fasilitas pembelajaran, kunjungan edukatif, serta produk
-              pertanian unggulan.
+                {DATA_PROFIL_ATP.deskripsi[0]}
               </p>
+              
               <Link href="/profil" className="font-body w-fit mt-2 rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
                 Detail Profil
               </Link>
