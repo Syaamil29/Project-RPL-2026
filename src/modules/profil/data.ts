@@ -12,7 +12,6 @@ export const DATA_PROFIL_ATP = {
     "Greenhouse Melon",
     "Hidroponik NFT",
     "Smart Greenhouse",
-    "Digital Farming Centre"
   ],
 
   tujuan: "Memberikan layanan yang optimal, edukatif, dan bermakna kepada masyarakat sehingga dapat meningkatkan pemahaman, keterlibatan, dan apresiasi terhadap inovasi pertanian modern yang dikembangkan di ATP IPB.",

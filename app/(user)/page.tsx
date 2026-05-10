@@ -7,12 +7,8 @@ import { type TouchEvent, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { CATALOG_PRODUCTS } from "@/lib/catalog-products";
 import { DATA_PROFIL_ATP } from '@/src/modules/profil/data';
-
-const facilities = [
-  { id: 1, title: "Green House Nursery", description: "Belajar budidaya tanaman dengan teknologi modern.", capacity: 20, image: "/images-1-facilities.png" },
-  { id: 2, title: "Hydroponic Lab", description: "Eksplorasi sistem hidroponik berbasis teknologi presisi.", capacity: 25, image: "/images-1-facilities.png" },
-  { id: 3, title: "Biotech Lab", description: "Riset bioteknologi untuk inovasi pertanian modern.", capacity: 15, image: "/images-1-facilities.png" },
-];
+import { DATA_FASILITAS } from '@/src/modules/fasilitas/data';
+import FasilitasModal from '@/src/modules/fasilitas/components/FasilitasModal';
 
 const langkahReservasi = [
   { step: "1", title: "Isi Form Reservasi", description: "Lengkapi data kunjungan melalui form online dengan mudah." },
@@ -25,6 +21,19 @@ export default function HomePage() {
   const topProducts = useMemo(() => CATALOG_PRODUCTS.slice(0, 10), []);
   const [currentProductIdx, setCurrentProductIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const fasilitasUnggulanIds = [
+    "hidroponik-substrat", 
+    "hidroponik-nft", 
+    "smart-greenhouse-nursery"
+  ];
+
+  const topFasilitas = fasilitasUnggulanIds
+    .map(id => DATA_FASILITAS.find(item => item.id === id))
+    .filter(item => item !== undefined);
+  
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedFasilitas = DATA_FASILITAS.find(item => item.id === selectedId);
 
   const handleReservasiHero = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -158,7 +167,7 @@ export default function HomePage() {
 
       {/* FASILITAS SECTION */}
       <div className="w-full bg-white border-b-2 border-slate-100">
-        <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+        <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 relative">
           <div className="text-center">
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
               Fasilitas
@@ -168,30 +177,52 @@ export default function HomePage() {
               untuk kunjungan edukatif dan penelitian
             </p>
           </div>
+          
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {facilities.map((item) => (
+            {topFasilitas.map((item) => (
               <article key={item.id} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
                 <div className="relative h-[200px] w-full overflow-hidden bg-slate-100">
-                  <Image src={item.image} alt={item.title} fill className="object-cover" />
+                  <Image src={item.gambarUtama} alt={item.nama} fill className="object-cover" />
                 </div>
                 <div className="flex flex-col flex-1 p-5">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.title}</h3>
-                    <div className="font-body flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-50">
-                      👤 {item.capacity}
+                    <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.nama}</h3>
+                    <div className="font-body flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-[10px] font-bold text-slate-600 bg-slate-50 whitespace-nowrap">
+                      🌱 {item.kategori.split(' ')[0]}
                     </div>
                   </div>
-                  <p className="font-body text-xs md:text-sm text-slate-600 flex-1 line-clamp-2">{item.description}</p>
-                  <button className="font-body mt-5 w-full rounded-full bg-[#2D24B5] py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#20188A]">Detail</button>
+                  
+                  <p className="font-body text-xs md:text-sm text-slate-600 flex-1 line-clamp-2">
+                    {item.deskripsiSingkat}
+                  </p>
+                  
+                  <button 
+                    onClick={() => setSelectedId(item.id)} 
+                    className="font-body mt-auto inline-flex items-center justify-center w-full py-2.5 px-4 bg-slate-50 text-[#231896] text-sm font-bold rounded-xl border border-slate-200 hover:bg-[#231896] hover:text-white transition-all duration-300"
+                  >
+                    Detail
+                  </button>
                 </div>
               </article>
             ))}
           </div>
+          
           <div className="mt-12 flex justify-center">
-            <button className="rounded-full bg-blue-700 px-8 py-3 text-white font-semibold hover:bg-blue-800">
-              Lihat Semua Fasilitas
-            </button>
+            <Link 
+              href="/fasilitas" 
+              className="rounded-full bg-[#2D24B5] px-8 py-3 text-white font-semibold hover:bg-blue-800 transition-all hover:-translate-y-0.5 shadow-sm hover:shadow"
+            >
+              Lihat Semua Fasilitas ({DATA_FASILITAS.length})
+            </Link>
           </div>
+
+          {selectedFasilitas && (
+            <FasilitasModal 
+              item={selectedFasilitas} 
+              onClose={() => setSelectedId(null)} 
+            />
+          )}
+
         </section>
       </div>
 
@@ -311,6 +342,20 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      {/* CARA RESERVASI SECTION */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
+        <h2 className="font-heading text-center text-3xl md:text-4xl font-bold text-[#1F17A1]">Cara Reservasi</h2>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {langkahReservasi.map((item) => (
+            <article key={item.step} className="flex flex-col items-center justify-center rounded-2xl bg-[#EEF2FF] p-8 text-center transition-transform hover:-translate-y-1 hover:shadow-sm">
+              <div className="font-body flex h-10 w-10 items-center justify-center rounded-full bg-[#2D24B5] text-sm font-bold text-white shadow-sm">{item.step}</div>
+              <h3 className="font-heading mt-4 text-lg font-bold text-[#1F17A1]">{item.title}</h3>
+              <p className="font-body mt-2 text-xs md:text-sm text-[#1F17A1]/80 leading-relaxed">{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {/* LOKASI KAMI SECTION */}
       <section id="lokasi" className="w-full bg-white py-16 scroll-mt-24">
