@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type TouchEvent, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { CATALOG_PRODUCTS } from "@/lib/catalog-products";
 
 const facilities = [
   { id: 1, title: "Green House Nursery", description: "Belajar budidaya tanaman dengan teknologi modern.", capacity: 20, image: "/images-1-facilities.png" },
@@ -20,13 +21,9 @@ const langkahReservasi = [
 
 export default function HomePage() {
   const router = useRouter();
-  
-  const [productList] = useState([
-    { id: 1, nama: "Beras Organik", stock: 15, src: "/beras.png"},
-    { id: 2, nama: "Kacang Organik", stock: 15, src: "/kacang.jpg" },
-    { id: 3, nama: "Bayam Organik", stock: 15, src: "/bayam.jpg" },
-    { id: 4, nama: "Wortel Manis", stock: 25, src: "/wortel.jpg" },
-  ]);
+  const topProducts = useMemo(() => CATALOG_PRODUCTS.slice(0, 10), []);
+  const [currentProductIdx, setCurrentProductIdx] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const handleReservasiHero = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -52,6 +49,39 @@ export default function HomePage() {
     } else {
       router.push("/reservasi/riwayat");
     }
+  };
+
+  const productCount = topProducts.length;
+  const visibleCount =
+    productCount >= 5 ? 5 : productCount >= 3 ? 3 : Math.max(1, productCount);
+  const sideSlots = Math.floor(visibleCount / 2);
+
+  const wrapIndex = (idx: number) =>
+    (idx + productCount) % (productCount === 0 ? 1 : productCount);
+
+  const nextProduct = () => {
+    if (productCount <= 1) return;
+    setCurrentProductIdx((prev) => wrapIndex(prev + 1));
+  };
+
+  const prevProduct = () => {
+    if (productCount <= 1) return;
+    setCurrentProductIdx((prev) => wrapIndex(prev - 1));
+  };
+
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    setTouchStartX(e.touches[0]?.clientX ?? null);
+  };
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX === null) return;
+    const endX = e.changedTouches[0]?.clientX ?? touchStartX;
+    const delta = endX - touchStartX;
+    if (Math.abs(delta) > 40) {
+      if (delta < 0) nextProduct();
+      if (delta > 0) prevProduct();
+    }
+    setTouchStartX(null);
   };
 
   return (
@@ -127,87 +157,160 @@ export default function HomePage() {
       </section>
 
       {/* FASILITAS SECTION */}
-      <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
-        <div className="text-center">
-          {/* */}
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
-            Fasilitas
-          </h2>
-          
-          {/* */}
-          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-            Jelajahi fasilitas utama ATP IPB <br/>
-            untuk kunjungan edukatif dan penelitian
-          </p>
-        </div>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {facilities.map((item) => (
-            <article key={item.id} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
-              <div className="relative h-[200px] w-full overflow-hidden bg-slate-100">
-                <Image src={item.image} alt={item.title} fill className="object-cover" />
-              </div>
-              <div className="flex flex-col flex-1 p-5">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.title}</h3>
-                  <div className="font-body flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-50">
-                    👤 {item.capacity}
-                  </div>
+      <div className="w-full bg-white border-b-2 border-slate-100">
+        <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+          <div className="text-center">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
+              Fasilitas
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+              Jelajahi fasilitas utama ATP IPB <br/>
+              untuk kunjungan edukatif dan penelitian
+            </p>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {facilities.map((item) => (
+              <article key={item.id} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
+                <div className="relative h-[200px] w-full overflow-hidden bg-slate-100">
+                  <Image src={item.image} alt={item.title} fill className="object-cover" />
                 </div>
-                <p className="font-body text-xs md:text-sm text-slate-600 flex-1 line-clamp-2">{item.description}</p>
-                <button className="font-body mt-5 w-full rounded-full bg-[#2D24B5] py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#20188A]">Detail</button>
-              </div>
-            </article>
-          ))}
-        </div>
-        {/* FOOTER BUTTON */}
-        <div className="mt-12 flex justify-center">
-          <button className="rounded-full bg-blue-700 px-8 py-3 text-white font-semibold hover:bg-blue-800">
-            Lihat Semua Fasilitas
-          </button>
-        </div>
-      </section>
+                <div className="flex flex-col flex-1 p-5">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.title}</h3>
+                    <div className="font-body flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-50">
+                      👤 {item.capacity}
+                    </div>
+                  </div>
+                  <p className="font-body text-xs md:text-sm text-slate-600 flex-1 line-clamp-2">{item.description}</p>
+                  <button className="font-body mt-5 w-full rounded-full bg-[#2D24B5] py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#20188A]">Detail</button>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="mt-12 flex justify-center">
+            <button className="rounded-full bg-blue-700 px-8 py-3 text-white font-semibold hover:bg-blue-800">
+              Lihat Semua Fasilitas
+            </button>
+          </div>
+        </section>
+      </div>
 
       {/* PRODUK SECTION */}
-      <section id="produk" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
-        <div className="text-center">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">Produk Kami</h2>
-        </div>
-        <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {productList.map((item) => (
-            <Link key={item.id} href={`/katalog/${item.id}`} className="group flex flex-col rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
-              <div className="aspect-square w-full bg-slate-100 overflow-hidden">
-                <img src={item.src} alt={item.nama} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              </div>
-              <div className="font-body p-4 flex flex-col flex-grow justify-between">
-                <h3 className="font-heading text-sm md:text-base font-bold text-[#1F17A1] line-clamp-2">{item.nama}</h3>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs md:text-sm font-medium text-slate-500">Stok: {item.stock}</span>
-                  <span className="text-xs md:text-sm font-bold text-[#2D24B5] transition-colors group-hover:text-[#1F17A1]">Detail &rarr;</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-10 flex justify-center">
-          <Link href="/katalog" className="font-body rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
-            Produk Lainnya
-          </Link>
-        </div>
-      </section>
+      <div className="w-full bg-white">
+        <section id="produk" className="w-full py-16">
+          <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
 
-      {/* CARA RESERVASI SECTION */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
-        <h2 className="font-heading text-center text-3xl md:text-4xl font-bold text-[#1F17A1]">Cara Reservasi</h2>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {langkahReservasi.map((item) => (
-            <article key={item.step} className="flex flex-col items-center justify-center rounded-2xl bg-[#EEF2FF] p-8 text-center transition-transform hover:-translate-y-1 hover:shadow-sm">
-              <div className="font-body flex h-10 w-10 items-center justify-center rounded-full bg-[#2D24B5] text-sm font-bold text-white shadow-sm">{item.step}</div>
-              <h3 className="font-heading mt-4 text-lg font-bold text-[#1F17A1]">{item.title}</h3>
-              <p className="font-body mt-2 text-xs md:text-sm text-[#1F17A1]/80 leading-relaxed">{item.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+            {/* Heading */}
+            <div className="text-center mb-8">
+              <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">Produk Kami</h2>
+              <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+                Temukan produk unggulan ATP IPB<br/>
+                hasil inovasi dan riset pertanian modern
+              </p>
+            </div>
+
+            {/* Carousel container — buttons absolutely placed inside, track is full width */}
+            <div
+              className="relative mx-auto h-[460px] w-full overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* Cards — left-1/2 now resolves to true center of full-width container */}
+              {topProducts.map((item, idx) => {
+                const rawOffset = idx - currentProductIdx;
+                const circularOffset =
+                  Math.abs(rawOffset) > productCount / 2
+                    ? rawOffset > 0
+                      ? rawOffset - productCount
+                      : rawOffset + productCount
+                    : rawOffset;
+
+                if (Math.abs(circularOffset) > sideSlots) return null;
+
+                const absOffset = Math.abs(circularOffset);
+                const translateX = circularOffset * 60;
+                const scale = absOffset === 0 ? 1 : absOffset === 1 ? 0.84 : 0.70;
+                const opacity = absOffset === 0 ? 1 : absOffset === 1 ? 0.85 : 0.65;
+                const zIndex = 30 - absOffset;
+
+                return (
+                  <article
+                    key={item.id}
+                    className="absolute left-1/2 top-1/2 w-[280px] rounded-2xl border-2 border-slate-200 bg-white shadow-md transition-all duration-500 ease-out"
+                    style={{
+                      transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
+                      opacity,
+                      zIndex,
+                    }}
+                  >
+                    <Link href={`/katalog/${item.id}`} className="group block">
+                      <div className="h-[260px] w-full overflow-hidden rounded-t-2xl bg-slate-100">
+                        <Image
+                          src={item.imagePath}
+                          alt={item.nama}
+                          width={640}
+                          height={640}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    </Link>
+                    <div className="font-body bg-white p-3 rounded-b-2xl">
+                      <h3 className="font-heading text-sm font-bold text-[#1F17A1] line-clamp-1">
+                        {item.nama}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-600">
+                        {item.description}
+                      </p>
+                      <p className="mt-1 text-xs font-medium text-slate-500">Stok: {item.stock}</p>
+                    </div>
+                  </article>
+                );
+              })}
+
+              {/* Buttons absolutely positioned INSIDE the container, not in flex flow */}
+              <button
+                type="button"
+                onClick={prevProduct}
+                aria-label="Produk sebelumnya"
+                className="absolute left-2 top-1/2 z-40 -translate-y-1/2 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:text-[#1F17A1]"
+              >
+                &lt;
+              </button>
+              <button
+                type="button"
+                onClick={nextProduct}
+                aria-label="Produk berikutnya"
+                className="absolute right-2 top-1/2 z-40 -translate-y-1/2 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:text-[#1F17A1]"
+              >
+                &gt;
+              </button>
+            </div>
+
+            {/* Dots */}
+            <div className="mt-6 flex justify-center gap-2">
+              {topProducts.map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setCurrentProductIdx(idx)}
+                  aria-label={`Lihat produk ${idx + 1}`}
+                  className={`h-2.5 w-2.5 rounded-full transition ${
+                    idx === currentProductIdx ? "bg-[#2D24B5] scale-110" : "bg-slate-300 hover:bg-slate-400"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Details button */}
+            <div className="mt-6 flex justify-center">
+              <Link href="/katalog" className="font-body rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
+                Details -&gt;
+              </Link>
+            </div>
+
+          </div>
+        </section>
+      </div>
 
       {/* LOKASI KAMI SECTION */}
       <section id="lokasi" className="w-full bg-white py-16 scroll-mt-24">
