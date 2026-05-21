@@ -1,6 +1,6 @@
 export type KategoriFasilitas = 
   | "Pertanian Modern & IoT" 
-  | "Perikanan & Peternakan" 
+  | "Perikanan & Akuakultur" 
   | "Pengolahan & Kebun";
 
 export interface Fasilitas {
@@ -27,11 +27,11 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Melon dipanen 65-75 HST (dibuahkan 1 per tanaman untuk kualitas premium).",
       "Tomat dipanen bertahap setiap 3-5 hari pada umur 90-100 HST."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/GHMelon.webp",
   },
   {
     id: "budidaya-organik",
-    nama: "Budidaya Organik",
+    nama: "Budidaya Sayuran Organik",
     kategori: "Pengolahan & Kebun",
     deskripsiSingkat: "Budidaya sayuran premium di screenhouse dengan 100% bahan input organik bersertifikat nasional.",
     deskripsiLengkap: "Dikelola di dalam screenhouse untuk mencegah kontaminasi. Menggunakan irigasi sprinkler terintegrasi IoT dengan sensor kelembapan media. Telah memperoleh sertifikasi organik dari INOFICE pada September 2023.",
@@ -41,12 +41,12 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Biopestisida alami dari ekstrak minyak sereh.",
       "Pupuk cair fermentasi urin kelinci & molase (rutin tiap 5 hari)."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/SayurOrganik.webp",
   },
   {
     id: "aquaponik",
     nama: "Aquaponik",
-    kategori: "Perikanan & Peternakan",
+    kategori: "Perikanan & Akuakultur",
     deskripsiSingkat: "Sistem simbiosis yang memanfaatkan air kolam ikan sebagai nutrisi utama bagi tanaman sayur.",
     deskripsiLengkap: "Air hasil pemeliharaan ikan dialirkan ke pipa tanaman sayur. Sebelum masuk, air difiltrasi secara fisik (media batuan) dan biologi (bioagen EM4). Terdapat juga kolam khusus budidaya lobster air tawar.",
     komoditas: ["Kangkung", "Selada", "Pakcoy", "Kailan", "Lobster Air Tawar"],
@@ -55,12 +55,12 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Pakan lobster memanfaatkan limbah sayur dan buah (Zero Waste).",
       "Panen lobster pada ukuran 4-5 inch (umur 4-6 bulan)."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/Aquaponik.webp",
   },
   {
     id: "fishery",
     nama: "Fishery (Sistem Budidaya Ikan)",
-    kategori: "Perikanan & Peternakan",
+    kategori: "Perikanan & Akuakultur",
     deskripsiSingkat: "Instalasi 19 kolam ikan bundar dengan automatic feeder IoT dan konsep pertanian sirkular terpadu.",
     deskripsiLengkap: "Terdapat 19 kolam bundar (diameter 3,5m) yang didesain tanpa dead spot. Dilengkapi fine diffuser oksigen dan automatic feeder. Limbah air kolam (10% per minggu) dimanfaatkan kembali untuk irigasi kebun jambu.",
     komoditas: ["Koi", "Sidat", "Nila Merah", "Nila Hitam", "Lele"],
@@ -69,7 +69,7 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Panen Nila 5 bulan (250g), Lele 3-4 bulan (100g).",
       "Pakan ikan dicampur limbah sayuran untuk efisiensi."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/fishery.webp",
   },
   {
     id: "smart-greenhouse-nursery",
@@ -83,7 +83,7 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Iklim dikendalikan sensor suhu otomatis (rolling screen & misting).",
       "Mesin penyemai otomatis untuk komoditas biji kecil (cabai/tomat)."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/Nursery.webp",
   },
   {
     id: "hidroponik-nft",
@@ -97,7 +97,7 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Siklus panen sangat singkat (4–5 minggu).",
       "Tangki bawah tanah (Ground Tank) penjaga suhu nutrisi."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/GHNFT.webp",
   },
   {
     id: "kebun-jambu",
@@ -111,7 +111,7 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Satu tanaman (usia 2 tahun) menghasilkan 70-80 kg buah per 6 bulan.",
       "Grading pasca panen ketat (Grade A, B, C, Substandard)."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/KebunJambu.webp",
   },
   {
     id: "plant-factory",
@@ -125,7 +125,7 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Lingkungan steril terlindungi mutlak dari hama dan penyakit.",
       "Fokus utama untuk edukasi mahasiswa dan komoditas high-value."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/Plant-factory.webp",
   },
   {
     id: "agroforestry",
@@ -139,21 +139,7 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Mitigasi perubahan iklim global melalui peningkatan biomassa.",
       "Pemberdayaan langsung perekonomian masyarakat sekitar hutan."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
-  },
-  {
-    id: "unit-puyuh",
-    nama: "Unit Produksi Telur Puyuh",
-    kategori: "Perikanan & Peternakan",
-    deskripsiSingkat: "Fasilitas peternakan intensif untuk memproduksi ribuan telur puyuh segar setiap harinya.",
-    deskripsiLengkap: "Mengelola populasi ribuan ekor burung puyuh dengan standar perawatan tinggi. Pakan pur diperkaya vitamin diberikan rutin beserta kontrol kesehatan berkala untuk memastikan kualitas cangkang dan telur.",
-    komoditas: ["Telur Puyuh"],
-    highlights: [
-      "Populasi aktif sekitar 4.000 ekor burung puyuh.",
-      "Kapasitas produksi tinggi: 3.000 - 3.600 butir/hari.",
-      "Jalur distribusi langsung memasok pasar mitra Ciampea."
-    ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/Agroforestry.webp",
   },
   {
     id: "packing-house",
@@ -167,6 +153,6 @@ export const DATA_FASILITAS: Fasilitas[] = [
       "Distribusi armada menggunakan mobil Cool Box penahan suhu.",
       "Menyerap dan memberdayakan hasil panen dari petani mitra mingguan."
     ],
-    gambarUtama: "/images/fasilitas/placeholder.png",
+    gambarUtama: "/images/fasilitas/Packing-house.webp",
   }
 ];

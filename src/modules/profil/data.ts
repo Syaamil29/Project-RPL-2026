@@ -1,5 +1,3 @@
-// modules/profil/data.ts
-
 export const DATA_PROFIL_ATP = {
   nama: "Agribusiness and Technology Park",
   tagline: "Laboratorium Hidup Inovasi Pertanian Modern",

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type TouchEvent, useMemo, useState } from "react";
+import { type TouchEvent, useMemo, useState, useEffect} from "react";
 import { supabase } from "@/lib/supabase";
 import { CATALOG_PRODUCTS } from "@/lib/catalog-products";
 import { DATA_PROFIL_ATP } from '@/src/modules/profil/data';
@@ -16,12 +16,29 @@ const langkahReservasi = [
   { step: "3", title: "Kunjungi ATP IPB", description: "Datang sesuai jadwal untuk pengalaman kunjungan yang terarah." },
 ];
 
+const heroSlides = [
+  { src: "/images/hero/hero-image2.webp", alt: "Tampilan Depan ATP" },
+  { src: "/images/hero/hero-image3.webp", alt: "Aktivitas Edukasi ATP" },
+  { src: "/images/hero/hero-image4.webp", alt: "Aktivitas ATP" },
+];
+
+
 export default function HomePage() {
   const router = useRouter();
   const topProducts = useMemo(() => CATALOG_PRODUCTS.slice(0, 10), []);
   const [currentProductIdx, setCurrentProductIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
+
+  const [currentHeroIdx, setCurrentHeroIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentHeroIdx((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+  
   const fasilitasUnggulanIds = [
     "hidroponik-substrat", 
     "hidroponik-nft", 
@@ -104,13 +121,37 @@ export default function HomePage() {
       `}</style>
 
       {/* HERO SECTION */}
-      <section id="home" className="w-full bg-white pb-16">
-        <div className="relative w-full h-[40vh] min-h-[300px] sm:h-[450px]">
-          <Image src="/hero-image.png" alt="ATP Slider Full" fill className="object-cover" priority />
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-             <div className="h-2 w-2 rounded-full bg-[#2D24B5]"></div>
-             <div className="h-2 w-2 rounded-full bg-white/70"></div>
-             <div className="h-2 w-2 rounded-full bg-white/70"></div>
+        <section id="home" className="w-full bg-white pb-16">
+        <div className="relative w-full h-[40vh] min-h-[300px] sm:h-[450px] overflow-hidden">
+          {heroSlides.map((slide, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentHeroIdx ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+            >
+              <Image 
+                src={slide.src} 
+                alt={slide.alt} 
+                fill 
+                className="object-cover" 
+                priority={index === 0} 
+              />
+            </div>
+          ))}
+
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 z-20">
+            {heroSlides.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setCurrentHeroIdx(index)}
+                aria-label={`Go to slide ${index + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === currentHeroIdx ? "bg-[#2D24B5] w-4" : "bg-white/70 hover:bg-white"
+                }`}
+              />
+            ))}
           </div>
         </div>
 
@@ -130,7 +171,6 @@ export default function HomePage() {
             >
               Reservasi Sekarang
             </button>
-            {/*  fungsi handleCekRiwayat */}
             <button
               onClick={() => void handleCekRiwayat()}
               className="rounded-full border border-[#2D24B5] bg-white px-8 py-3 text-sm md:text-base font-semibold text-[#2D24B5] transition-all hover:bg-blue-50"
@@ -159,7 +199,7 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="relative h-[250px] w-full overflow-hidden rounded-2xl md:h-[320px] shadow-md">
-              <Image src="/tentang-image.png" alt="ATP IPB" fill className="object-cover" />
+              <Image src="/images/profil/ProfilATP.webp" alt="ATP IPB" fill className="object-cover" />
             </div>
           </div>
         </div>

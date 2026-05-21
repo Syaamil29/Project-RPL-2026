@@ -27,7 +27,7 @@ export default function ProfilATP() {
             <div className="w-full lg:w-1/2">
               <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden shadow-2xl">
                 <Image 
-                  src="/tentang-image.png" 
+                  src="/images/profil/ProfilATP.webp" 
                   alt="ATP IPB" 
                   fill 
                   className="object-cover transform hover:scale-105 transition duration-700"
@@ -57,7 +57,6 @@ export default function ProfilATP() {
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card: Tujuan */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-blue-300 transition-colors group">
             <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-700 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
@@ -68,7 +67,6 @@ export default function ProfilATP() {
             </p>
           </div>
 
-          {/* Card: Manfaat */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-blue-300 transition-colors group">
             <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-700 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
@@ -83,7 +81,6 @@ export default function ProfilATP() {
             </ul>
           </div>
 
-          {/* Card: Kegiatan */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-blue-300 transition-colors group">
             <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-700 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" x2="6" y1="1" y2="4"/><line x1="10" x2="10" y1="1" y2="4"/><line x1="14" x2="14" y1="1" y2="4"/></svg>
@@ -98,7 +95,6 @@ export default function ProfilATP() {
             </div>
           </div>
 
-          {/* Card: Fasilitas */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-blue-300 transition-colors group">
             <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-700 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"/></svg>
