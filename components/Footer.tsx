@@ -74,7 +74,7 @@ export default async function Footer() {
           {data.instagram && (
             <div className="mt-6">
               <Link href={data.instagram} target="_blank" className="inline-flex items-center gap-2 hover:opacity-80 transition">
-                <Image src="/icons/instagram.svg" alt="Instagram" width={20} height={20} className="invert" />
+                <Image src="/icons/Instagram.svg" alt="Instagram" width={20} height={20} className="invert" />
                 <span className="text-sm">Instagram</span>
               </Link>
             </div>
