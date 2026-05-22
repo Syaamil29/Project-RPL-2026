@@ -199,7 +199,7 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="relative h-[250px] w-full overflow-hidden rounded-2xl md:h-[320px] shadow-md">
-              <Image src="/images/profil/ProfilATP.webp" alt="ATP IPB" fill className="object-cover" />
+              <Image src="/images/profil/ProfilATP.webp" alt="ATP IPB" fill className="object-cover"  sizes="(max-width: 768px) 100vw, 50vw"/>
             </div>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function HomePage() {
             {topFasilitas.map((item) => (
               <article key={item.id} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
                 <div className="relative h-[200px] w-full overflow-hidden bg-slate-100">
-                  <Image src={item.gambarUtama} alt={item.nama} fill className="object-cover" />
+                  <Image src={item.gambarUtama} alt={item.nama} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
                 </div>
                 <div className="flex flex-col flex-1 p-5">
                   <div className="flex items-start justify-between gap-2 mb-2">
