@@ -1,24 +1,36 @@
 import Image from "next/image";
 import Link from "next/link";
-
-const contactItems = [
-  { label: "Alamat", value: "Jl. Carang Pulang No. 1, Cikarawang, Kec. Dramaga, Bogor 16680" },
-  { label: "Jam Operasional", value: "Senin - Jumat (08.00 - 16.00)" },
-  { label: "Telepon", value: "+62 85733392949", href: "tel:+6285733392949" },
-  { label: "Email", value: "atp@apps.ipb.ac.id", href: "mailto:atp@apps.ipb.ac.id" },
-];
+import { getProfilSettings } from "@/src/modules/profil/service";
+import { DATA_PROFIL_ATP } from "@/src/modules/profil/data";
 
 const quickLinks = [
   { label: "IPB Official", href: "https://ipb.ac.id" },
-  { label: "Lembaga Pengembangan Agromaritim dan Akselerasi Innopreneurship", href: "#" },
-  { label: "SobaTani IPB", href: "#" },
+  { label: "Lembaga Pengembangan Agromaritim dan Akselerasi Innopreneurship", href: "https://instagram.com/agromaritim.ipb" },
+  { label: "SobaTani IPB", href: "https://instagram.com/sobatani.ipb" },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  const dynamicData = await getProfilSettings();
+  
+  const data = {
+    email: dynamicData?.email ?? DATA_PROFIL_ATP.kontak.email,
+    telepon: dynamicData?.no_telepon ?? DATA_PROFIL_ATP.kontak.telepon,
+    jam: dynamicData?.jam_operasional ?? DATA_PROFIL_ATP.kontak.jam_operasional,
+    alamat: DATA_PROFIL_ATP.kontak.alamat, 
+    instagram: dynamicData?.link_instagram,
+  };
+
+  const contactItems = [
+    { label: "Alamat", value: data.alamat },
+    { label: "Jam Operasional", value: data.jam },
+    { label: "Telepon", value: data.telepon, href: `tel:${data.telepon.replace(/\s+/g, '')}` },
+    { label: "Email", value: data.email, href: `mailto:${data.email}` },
+  ];
+
   return (
     <footer className="bg-[#231896] text-white">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-12 md:grid-cols-3">
-        {/* BRAND */}
+        
         <div>
           <h2 className="font-heading text-xl font-bold tracking-wide">
             Agribusiness and Technology Park
@@ -52,19 +64,21 @@ export default function Footer() {
           <h3 className="font-heading text-lg font-semibold text-white">Quick Links</h3>
           <div className="mt-4 space-y-2 text-sm text-white/80">
             {quickLinks.map((link) => (
-              <a key={link.label} href={link.href} className="block hover:text-white hover:underline">
+              <Link key={link.label} href={link.href} className="block hover:text-white hover:underline">
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
 
-          {/* SOCIAL */}
-          <div className="mt-6">
-            <a href="#" className="inline-flex items-center gap-2 hover:opacity-80 transition">
-              <Image src="/icons/instagram.svg" alt="Instagram" width={20} height={20} className="invert" />
-              <span className="text-sm">Instagram</span>
-            </a>
-          </div>
+          {/* SOCIAL  */}
+          {data.instagram && (
+            <div className="mt-6">
+              <Link href={data.instagram} target="_blank" className="inline-flex items-center gap-2 hover:opacity-80 transition">
+                <Image src="/icons/Instagram.svg" alt="Instagram" width={20} height={20} className="invert" />
+                <span className="text-sm">Instagram</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
