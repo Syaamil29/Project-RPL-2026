@@ -2,43 +2,47 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import {
+  getKebutuhanBadge,
+  getReservationDetail,
+  getReservationDocument,
+  getReservationJumlahOrang,
+  getReservationSchedule,
+  normalizeStatus,
+  RESERVASI_SELECT_COLUMNS,
+  statusLabels,
+  statusStyles,
+  type ReservationRow,
+  type ReservationStatus,
+} from "@/lib/reservation"
 
-type ReservationStatus = "pending" | "approved" | "rejected"
 type StatusFilter = "all" | ReservationStatus
-
-type ReservationRow = {
-  id: string
-  nama_lengkap: string
-  instansi: string | null
-  email: string
-  nomor_telepon: string
-  tanggal_kunjungan: string
-  sesi_kunjungan: "Pagi" | "Siang" | null
-  jumlah_orang: number | null
-  tujuan_kunjungan: string | null
-  fasilitas: string[] | null
-  status: ReservationStatus | null
-  dokumen_url: string | null
-  created_at: string
-}
-
-const statusStyles: Record<ReservationStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
-}
 
 const filterTabs: { label: string; value: StatusFilter }[] = [
   { label: "Semua", value: "all" },
-  { label: "Pending", value: "pending" },
+  { label: "Menunggu", value: "pending" },
   { label: "Disetujui", value: "approved" },
   { label: "Ditolak", value: "rejected" },
 ]
 
-function getSesiLabel(sesi: ReservationRow["sesi_kunjungan"]) {
-  if (sesi === "Pagi") return "Pagi (08:00 - 12:00)"
-  if (sesi === "Siang") return "Siang (13:00 - 16:00)"
-  return "-"
+function CellText({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="block max-w-[200px] break-words text-sm text-slate-700 sm:max-w-none">
+      {children}
+    </span>
+  )
+}
+
+function KebutuhanBadge({ kebutuhan }: { kebutuhan: string | null }) {
+  const badge = getKebutuhanBadge(kebutuhan)
+  return (
+    <span
+      className={`inline-flex max-w-full whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}
+      title={kebutuhan ?? undefined}
+    >
+      {badge.label}
+    </span>
+  )
 }
 
 export default function RiwayatReservasiPage() {
@@ -62,9 +66,7 @@ export default function RiwayatReservasiPage() {
 
       const { data, error: fetchError } = await supabase
         .from("reservasi")
-        .select(
-          "id, nama_lengkap, instansi, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, tujuan_kunjungan, fasilitas, status, dokumen_url, created_at"
-        )
+        .select(RESERVASI_SELECT_COLUMNS)
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
 
@@ -75,7 +77,7 @@ export default function RiwayatReservasiPage() {
         return
       }
 
-      setReservations((data ?? []) as ReservationRow[])
+      setReservations((data ?? []) as unknown as ReservationRow[])
       setLoading(false)
     }
 
@@ -84,24 +86,23 @@ export default function RiwayatReservasiPage() {
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((item) => {
-      const normalizedStatus: ReservationStatus =
-        item.status === "approved" || item.status === "rejected"
-          ? item.status
-          : "pending"
-
-      const isStatusMatch = statusFilter === "all" ? true : normalizedStatus === statusFilter
-
-      return isStatusMatch
+      const normalized = normalizeStatus(item.status)
+      return statusFilter === "all" ? true : normalized === statusFilter
     })
   }, [reservations, statusFilter])
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-10 sm:px-6">
-      <section className="mx-auto w-full max-w-6xl rounded-2xl border border-slate-100 bg-white p-6 shadow-md">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Riwayat Reservasi</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Cek status pengajuan reservasi Anda
+    <main className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-50 px-4 py-10 sm:px-6">
+      <section className="mx-auto w-full max-w-7xl rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 sm:p-8">
+        <header className="mb-6 border-b border-slate-100 pb-6">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#2D24B5]">
+            Reservasi
+          </p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
+            Riwayat Reservasi
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Pantau status dan detail pengajuan reservasi Anda berdasarkan jenis layanan.
           </p>
         </header>
 
@@ -113,9 +114,9 @@ export default function RiwayatReservasiPage() {
                 key={tab.value}
                 type="button"
                 onClick={() => setStatusFilter(tab.value)}
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                   active
-                    ? "bg-blue-700 text-white"
+                    ? "bg-[#2D24B5] text-white shadow-sm"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -126,97 +127,89 @@ export default function RiwayatReservasiPage() {
         </div>
 
         {error ? (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
             Terjadi kesalahan: {error}
           </p>
         ) : null}
 
         {loading ? (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+          <div className="rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
             Memuat data reservasi...
           </div>
         ) : filteredReservations.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+          <div className="rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
             Belum ada reservasi ditemukan
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px]">
+          <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
+            <table className="w-full min-w-[1240px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-3 py-4">Nama</th>
-                  <th className="px-3 py-4">Instansi</th>
-                  <th className="px-3 py-4">Email</th>
-                  <th className="px-3 py-4">Nomor Telepon</th>
-                  <th className="px-3 py-4">Tanggal</th>
-                  <th className="px-3 py-4">Sesi</th>
-                  <th className="px-3 py-4">Jumlah Orang</th>
-                  <th className="px-3 py-4">Tujuan</th>
-                  <th className="px-3 py-4">Fasilitas</th>
-                  <th className="px-3 py-4">Status</th>
-                  <th className="px-3 py-4">Dokumen</th>
+                <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-3 py-3">Nama</th>
+                  <th className="px-3 py-3">Instansi</th>
+                  <th className="px-3 py-3">Email</th>
+                  <th className="px-3 py-3">Nomor Telepon</th>
+                  <th className="px-3 py-3">Pengunjung</th>
+                  <th className="px-3 py-3">Kebutuhan</th>
+                  <th className="min-w-[140px] px-3 py-3">Detail</th>
+                  <th className="min-w-[140px] px-3 py-3">Tanggal Kegiatan</th>
+                  <th className="px-3 py-3">Status</th>
+                  <th className="px-3 py-3">Dokumen</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredReservations.map((item) => {
-                  const currentStatus: ReservationStatus =
-                    item.status === "approved" || item.status === "rejected"
-                      ? item.status
-                      : "pending"
+                  const currentStatus = normalizeStatus(item.status)
+                  const documentUrl = getReservationDocument(item)
 
                   return (
-                    <tr key={item.id} className="border-b border-slate-100 hover:bg-gray-50">
-                      <td className="px-3 py-4 text-sm font-medium text-slate-800">
-                        {item.nama_lengkap}
-                      </td>
-                      <td className="px-3 py-4 text-sm text-slate-700">{item.instansi ?? "-"}</td>
-                      <td className="px-3 py-4 text-sm text-slate-700">{item.email}</td>
-                      <td className="px-3 py-4 text-sm text-slate-700">{item.nomor_telepon}</td>
-                      <td className="px-3 py-4 text-sm text-slate-700">{item.tanggal_kunjungan}</td>
-                      <td className="px-3 py-4 text-sm text-slate-700">
-                        {getSesiLabel(item.sesi_kunjungan)}
-                      </td>
-                      <td className="px-3 py-4 text-sm text-slate-700">
-                        {item.jumlah_orang ?? "-"}
-                      </td>
-                      <td className="px-3 py-4 text-sm text-slate-700">
-                        {item.tujuan_kunjungan ?? "-"}
+                    <tr
+                      key={item.id}
+                      className="border-b border-slate-100 align-top transition hover:bg-slate-50/80"
+                    >
+                      <td className="px-3 py-4 text-sm font-semibold text-slate-900">
+                        <CellText>{item.nama_lengkap}</CellText>
                       </td>
                       <td className="px-3 py-4">
-                        <div className="flex flex-wrap gap-1.5">
-                          {item.fasilitas?.length ? (
-                            item.fasilitas.map((fasilitas) => (
-                              <span
-                                key={fasilitas}
-                                className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
-                              >
-                                {fasilitas}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-sm text-slate-500">-</span>
-                          )}
-                        </div>
+                        <CellText>{item.instansi?.trim() || "-"}</CellText>
+                      </td>
+                      <td className="px-3 py-4">
+                        <CellText>{item.email}</CellText>
+                      </td>
+                      <td className="px-3 py-4">
+                        <CellText>{item.nomor_telepon}</CellText>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <CellText>{getReservationJumlahOrang(item)}</CellText>
+                      </td>
+                      <td className="px-3 py-4">
+                        <KebutuhanBadge kebutuhan={item.kebutuhan} />
+                      </td>
+                      <td className="px-3 py-4">
+                        <CellText>{getReservationDetail(item)}</CellText>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <CellText>{getReservationSchedule(item)}</CellText>
                       </td>
                       <td className="px-3 py-4">
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
+                          className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
                         >
-                          {currentStatus}
+                          {statusLabels[currentStatus]}
                         </span>
                       </td>
                       <td className="px-3 py-4 text-sm">
-                        {item.dokumen_url ? (
+                        {documentUrl ? (
                           <a
-                            href={item.dokumen_url}
+                            href={documentUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="font-medium text-blue-700 underline-offset-4 hover:underline"
+                            className="inline-flex whitespace-nowrap font-semibold text-[#2D24B5] underline-offset-4 hover:underline"
                           >
                             Lihat Dokumen
                           </a>
                         ) : (
-                          <span className="text-slate-500">-</span>
+                          <span className="text-slate-400">-</span>
                         )}
                       </td>
                     </tr>
