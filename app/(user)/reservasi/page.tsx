@@ -2,7 +2,8 @@
 
 import type { ChangeEvent, FormEvent } from "react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { isAdmin } from "@/lib/auth"
 import { createBrowserClient as createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Session } from "@supabase/supabase-js"
@@ -51,15 +52,48 @@ export default function ReservasiPage() {
     supabaseUrl && supabaseAnonKey
       ? createClientComponentClient(supabaseUrl, supabaseAnonKey)
       : null
+  const router = useRouter()
   const [form, setForm] = useState<ReservationForm>(initialForm)
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([])
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [countdown, setCountdown] = useState(3)
+  const [minDate, setMinDate] = useState("")
   const [errors, setErrors] = useState<Partial<Record<keyof ReservationForm | "fasilitas" | "dokumen", string>>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isAdminUser, setIsAdminUser] = useState(false)
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Compute tomorrow's date as YYYY-MM-DD in local time
+  useEffect(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const yyyy = tomorrow.getFullYear()
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, "0")
+    const dd = String(tomorrow.getDate()).padStart(2, "0")
+    setMinDate(`${yyyy}-${mm}-${dd}`)
+  }, [])
+
+  // Countdown + auto-redirect after successful submission
+  useEffect(() => {
+    if (!showSuccessModal) return
+    setCountdown(3)
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current!)
+          router.push("/reservasi/riwayat")
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current)
+    }
+  }, [showSuccessModal, router])
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -73,7 +107,7 @@ export default function ReservasiPage() {
 
   const validateForm = () => {
     const newErrors: Partial<Record<keyof ReservationForm | "fasilitas" | "dokumen", string>> = {}
-    
+
     if (!form.namaLengkap.trim()) {
       newErrors.namaLengkap = "Nama lengkap wajib diisi"
     }
@@ -85,19 +119,36 @@ export default function ReservasiPage() {
     if (!form.email.trim()) {
       newErrors.email = "Email wajib diisi"
     } else if (!validateEmail(form.email)) {
-      newErrors.email = "Format email tidak valid"
+      newErrors.email = "Format email tidak valid (contoh: nama@email.com)"
     }
 
-    if (!form.nomorTelepon.trim() || !validatePhone(form.nomorTelepon)) {
-      newErrors.nomorTelepon = "Nomor telepon tidak valid"
+    if (!form.nomorTelepon.trim()) {
+      newErrors.nomorTelepon = "Nomor telepon wajib diisi"
+    } else if (!validatePhone(form.nomorTelepon)) {
+      newErrors.nomorTelepon = "Nomor telepon minimal 10 digit angka"
     }
 
-    if (!form.jumlahOrang.trim() || !/^\d+$/.test(form.jumlahOrang) || parseInt(form.jumlahOrang, 10) < 1) {
-      newErrors.jumlahOrang = "Jumlah orang harus berupa angka dan minimal 1"
+    if (!form.jumlahOrang.trim()) {
+      newErrors.jumlahOrang = "Jumlah orang wajib diisi"
+    } else if (!/^\d+$/.test(form.jumlahOrang)) {
+      newErrors.jumlahOrang = "Jumlah orang harus berupa angka"
+    } else if (parseInt(form.jumlahOrang, 10) < 1) {
+      newErrors.jumlahOrang = "Jumlah orang minimal 1 orang"
     }
 
     if (!form.tanggalKunjungan) {
       newErrors.tanggalKunjungan = "Tanggal kunjungan wajib diisi"
+    } else {
+      const selectedDate = new Date(form.tanggalKunjungan)
+      if (isNaN(selectedDate.getTime())) {
+        newErrors.tanggalKunjungan = "Format tanggal kunjungan tidak valid"
+      } else {
+        // Compare date strings to avoid timezone issues
+        const todayStr = new Date().toLocaleDateString("sv-SE") // YYYY-MM-DD
+        if (form.tanggalKunjungan <= todayStr) {
+          newErrors.tanggalKunjungan = "Tanggal kunjungan minimal besok hari (H+1)"
+        }
+      }
     }
 
     if (!form.tujuanKunjungan.trim()) {
@@ -115,7 +166,7 @@ export default function ReservasiPage() {
     if (uploadedFile) {
       const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"]
       if (!validTypes.includes(uploadedFile.type)) {
-        newErrors.dokumen = "Format file tidak didukung"
+        newErrors.dokumen = "Format file tidak didukung. Gunakan PDF, JPG, atau PNG"
       }
     }
 
@@ -180,7 +231,6 @@ export default function ReservasiPage() {
     setSelectedFacilities([])
     setUploadedFile(null)
     setSubmitError(null)
-    setSuccessMessage(null)
     setErrors({})
   }
 
@@ -188,7 +238,7 @@ export default function ReservasiPage() {
     event.preventDefault()
 
     setSubmitError(null)
-    setSuccessMessage(null)
+
 
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -280,8 +330,6 @@ export default function ReservasiPage() {
       return
     }
 
-    setSuccessMessage("Reservasi berhasil dikirim")
-
     localStorage.removeItem("formData")
 
     setForm(initialForm)
@@ -289,10 +337,64 @@ export default function ReservasiPage() {
     setUploadedFile(null)
     setErrors({})
     setIsSubmitting(false)
+    setShowSuccessModal(true)
   }
 
   return (
     <main className="min-h-screen bg-slate-100">
+      {/* ── Success Modal ── */}
+      {showSuccessModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="success-modal-title"
+        >
+          <div className="mx-4 w-full max-w-md animate-[fadeInScale_.25s_ease-out] rounded-2xl border border-slate-100 bg-white p-8 shadow-2xl">
+            {/* Checkmark */}
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <svg
+                className="h-9 w-9 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+
+            <h2
+              id="success-modal-title"
+              className="text-center text-2xl font-bold text-slate-900"
+            >
+              Reservasi Berhasil Dikirim!
+            </h2>
+            <p className="mt-2 text-center text-sm text-slate-500">
+              Pengajuan reservasi Anda sedang menunggu persetujuan admin.
+              Kami akan menghubungi Anda setelah reservasi diproses.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (countdownRef.current) clearInterval(countdownRef.current)
+                  router.push("/reservasi/riwayat")
+                }}
+                className="w-full rounded-xl bg-blue-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
+              >
+                Lihat Riwayat Reservasi
+              </button>
+              <p className="text-center text-xs text-slate-400">
+                Otomatis diarahkan dalam{" "}
+                <span className="font-semibold text-slate-600">{countdown}</span> detik…
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-blue-900 sm:text-4xl">
@@ -307,11 +409,6 @@ export default function ReservasiPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-7 lg:col-span-2">
             <form className="grid gap-6 sm:grid-cols-2" onSubmit={handleSubmit}>
-              {successMessage ? (
-                <div className="sm:col-span-2 rounded-xl bg-green-50 border border-green-200 p-4 text-green-700">
-                  {successMessage}
-                </div>
-              ) : null}
               {submitError ? (
                 <div className="sm:col-span-2 rounded-xl bg-red-50 border border-red-200 p-4 text-red-700">
                   {submitError}
@@ -402,6 +499,7 @@ export default function ReservasiPage() {
                   id="tanggal_kunjungan"
                   name="tanggal_kunjungan"
                   type="date"
+                  min={minDate}
                   className={errors.tanggalKunjungan ? errorInputClassName : inputClassName}
                   value={form.tanggalKunjungan}
                   onChange={handleChange("tanggalKunjungan")}
@@ -597,3 +695,4 @@ export default function ReservasiPage() {
     </main>
   )
 }
+
