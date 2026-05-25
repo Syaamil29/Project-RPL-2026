@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
+    <html lang="id" data-scroll-behavior="smooth">
       {/*  dasar HTML dan Body */}
       <body className="min-h-screen flex flex-col bg-white">
         {children} 
