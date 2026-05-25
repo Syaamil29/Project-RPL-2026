@@ -2,35 +2,38 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import {
+  getKebutuhanBadge,
+  getReservationDetail,
+  getReservationDocument,
+  getReservationJumlahOrang,
+  getReservationSchedule,
+  normalizeStatus,
+  RESERVASI_SELECT_COLUMNS,
+  statusLabels,
+  statusStyles,
+  type ReservationRow,
+  type ReservationStatus,
+} from "@/lib/reservation"
 
-type ReservationStatus = "pending" | "approved" | "rejected"
-
-type ReservationRow = {
-  id: string
-  nama_lengkap: string
-  instansi: string | null
-  email: string
-  nomor_telepon: string
-  tanggal_kunjungan: string
-  sesi_kunjungan: "Pagi" | "Siang" | null
-  jumlah_orang: number | null
-  tujuan_kunjungan: string | null
-  fasilitas: string[] | null
-  status: ReservationStatus | null
-  dokumen_url: string | null
-  created_at: string
+function CellText({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="block max-w-[200px] break-words text-sm text-slate-700 sm:max-w-none">
+      {children}
+    </span>
+  )
 }
 
-const getSesiLabel = (sesi: ReservationRow["sesi_kunjungan"]) => {
-  if (sesi === "Pagi") return "Pagi (08:00 - 12:00)"
-  if (sesi === "Siang") return "Siang (13:00 - 16:00)"
-  return "-"
-}
-
-const statusStyles: Record<ReservationStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+function KebutuhanBadge({ kebutuhan }: { kebutuhan: string | null }) {
+  const badge = getKebutuhanBadge(kebutuhan)
+  return (
+    <span
+      className={`inline-flex max-w-full whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}
+      title={kebutuhan ?? undefined}
+    >
+      {badge.label}
+    </span>
+  )
 }
 
 export default function AdminReservasiPage() {
@@ -45,9 +48,7 @@ export default function AdminReservasiPage() {
 
     const { data, error: fetchError } = await supabase
       .from("reservasi")
-      .select(
-        "id, nama_lengkap, instansi, email, nomor_telepon, tanggal_kunjungan, sesi_kunjungan, jumlah_orang, tujuan_kunjungan, fasilitas, status, dokumen_url, created_at"
-      )
+      .select(RESERVASI_SELECT_COLUMNS)
       .order("created_at", { ascending: false })
 
     if (fetchError) {
@@ -57,7 +58,7 @@ export default function AdminReservasiPage() {
       return
     }
 
-    setReservations((data ?? []) as ReservationRow[])
+    setReservations((data ?? []) as unknown as ReservationRow[])
     setLoading(false)
   }, [])
 
@@ -67,7 +68,7 @@ export default function AdminReservasiPage() {
 
   const handleUpdateStatus = async (id: string, status: ReservationStatus) => {
     const confirmed = window.confirm(
-      `Yakin ingin mengubah status reservasi menjadi "${status}"?`
+      `Yakin ingin mengubah status reservasi menjadi "${statusLabels[status]}"?`
     )
     if (!confirmed) return
 
@@ -90,11 +91,12 @@ export default function AdminReservasiPage() {
   }
 
   const pendingData = reservations.filter(
-    (item) => (item.status ?? "pending") === "pending"
+    (item) => normalizeStatus(item.status) === "pending"
   )
-  const historyData = reservations.filter(
-    (item) => item.status === "approved" || item.status === "rejected"
-  )
+  const historyData = reservations.filter((item) => {
+    const s = normalizeStatus(item.status)
+    return s === "approved" || s === "rejected"
+  })
 
   const renderTable = (data: ReservationRow[], showActions: boolean) => {
     if (data.length === 0) {
@@ -107,92 +109,88 @@ export default function AdminReservasiPage() {
 
     return (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1150px]">
+        <table className="w-full min-w-[1320px] border-collapse">
           <thead>
-            <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-3 py-4">Nama</th>
-              <th className="px-3 py-4">Instansi</th>
-              <th className="px-3 py-4">Email</th>
-              <th className="px-3 py-4">Nomor Telepon</th>
-              <th className="px-3 py-4">Tanggal</th>
-              <th className="px-3 py-4">Sesi</th>
-              <th className="px-3 py-4">Jumlah Orang</th>
-              <th className="px-3 py-4">Tujuan</th>
-              <th className="px-3 py-4">Fasilitas</th>
-              <th className="px-3 py-4">Status</th>
-              <th className="px-3 py-4">Dokumen</th>
-              <th className="px-3 py-4">Aksi</th>
+            <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th className="px-3 py-3">Nama</th>
+              <th className="px-3 py-3">Instansi</th>
+              <th className="px-3 py-3">Email</th>
+              <th className="px-3 py-3">Nomor Telepon</th>
+              <th className="px-3 py-3">Pengunjung</th>
+              <th className="px-3 py-3">Kebutuhan</th>
+              <th className="min-w-[140px] px-3 py-3">Detail</th>
+              <th className="min-w-[140px] px-3 py-3">Tanggal Kegiatan</th>
+              <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3">Dokumen</th>
+              {showActions ? <th className="px-3 py-3">Aksi</th> : null}
             </tr>
           </thead>
           <tbody>
             {data.map((item) => {
-              const currentStatus: ReservationStatus =
-                item.status === "approved" || item.status === "rejected"
-                  ? item.status
-                  : "pending"
+              const currentStatus = normalizeStatus(item.status)
+              const documentUrl = getReservationDocument(item)
               const isUpdating = updatingId === item.id
 
               return (
-                <tr key={item.id} className="border-b border-slate-100 hover:bg-gray-50">
-                  <td className="px-3 py-4 text-sm font-medium text-slate-800">
-                    {item.nama_lengkap}
+                <tr
+                  key={item.id}
+                  className="border-b border-slate-100 align-top transition hover:bg-slate-50/80"
+                >
+                  <td className="px-3 py-4 text-sm font-semibold text-slate-900">
+                    <CellText>{item.nama_lengkap}</CellText>
                   </td>
-                  <td className="px-3 py-4 text-sm text-slate-700">{item.instansi ?? "-"}</td>
-                  <td className="px-3 py-4 text-sm text-slate-700">{item.email}</td>
-                  <td className="px-3 py-4 text-sm text-slate-700">{item.nomor_telepon}</td>
-                  <td className="px-3 py-4 text-sm text-slate-700">{item.tanggal_kunjungan}</td>
-                  <td className="px-3 py-4 text-sm text-slate-700">
-                    {getSesiLabel(item.sesi_kunjungan)}
-                  </td>
-                  <td className="px-3 py-4 text-sm text-slate-700">{item.jumlah_orang ?? "-"}</td>
-                  <td className="px-3 py-4 text-sm text-slate-700">{item.tujuan_kunjungan ?? "-"}</td>
                   <td className="px-3 py-4">
-                    <div className="flex flex-wrap gap-1.5">
-                      {item.fasilitas?.length ? (
-                        item.fasilitas.map((fasilitas) => (
-                          <span
-                            key={fasilitas}
-                            className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
-                          >
-                            {fasilitas}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sm text-slate-500">-</span>
-                      )}
-                    </div>
+                    <CellText>{item.instansi?.trim() || "-"}</CellText>
+                  </td>
+                  <td className="px-3 py-4">
+                    <CellText>{item.email}</CellText>
+                  </td>
+                  <td className="px-3 py-4">
+                    <CellText>{item.nomor_telepon}</CellText>
+                  </td>
+                  <td className="px-3 py-4 whitespace-nowrap">
+                    <CellText>{getReservationJumlahOrang(item)}</CellText>
+                  </td>
+                  <td className="px-3 py-4">
+                    <KebutuhanBadge kebutuhan={item.kebutuhan} />
+                  </td>
+                  <td className="px-3 py-4">
+                    <CellText>{getReservationDetail(item)}</CellText>
+                  </td>
+                  <td className="px-3 py-4 whitespace-nowrap">
+                    <CellText>{getReservationSchedule(item)}</CellText>
                   </td>
                   <td className="px-3 py-4">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
+                      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
                     >
-                      {currentStatus}
+                      {statusLabels[currentStatus]}
                     </span>
                   </td>
                   <td className="px-3 py-4 text-sm">
-                    {item.dokumen_url ? (
+                    {documentUrl ? (
                       <a
-                        href={item.dokumen_url}
+                        href={documentUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-medium text-blue-700 underline-offset-4 hover:underline"
+                        className="inline-flex whitespace-nowrap font-semibold text-[#2D24B5] underline-offset-4 hover:underline"
                       >
                         Lihat Dokumen
                       </a>
                     ) : (
-                      <span className="text-slate-500">-</span>
+                      <span className="text-slate-400">-</span>
                     )}
                   </td>
-                  <td className="px-3 py-4">
-                    {showActions ? (
-                      <div className="flex gap-2">
+                  {showActions ? (
+                    <td className="px-3 py-4">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           disabled={isUpdating}
                           onClick={() => void handleUpdateStatus(item.id, "approved")}
-                          className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Approve
+                          Setujui
                         </button>
                         <button
                           type="button"
@@ -200,13 +198,11 @@ export default function AdminReservasiPage() {
                           onClick={() => void handleUpdateStatus(item.id, "rejected")}
                           className="rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Reject
+                          Tolak
                         </button>
                       </div>
-                    ) : (
-                      <span className="text-sm text-slate-400">-</span>
-                    )}
-                  </td>
+                    </td>
+                  ) : null}
                 </tr>
               )
             })}
@@ -218,12 +214,12 @@ export default function AdminReservasiPage() {
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6">
-      <section className="mx-auto w-full max-w-6xl">
+      <section className="mx-auto w-full max-w-7xl">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Dashboard Reservasi</h1>
             <p className="mt-1 text-sm text-slate-600">
-              Kelola status pengajuan reservasi kunjungan ATP IPB.
+              Kelola status pengajuan reservasi ATP IPB.
             </p>
           </div>
           <button
@@ -236,7 +232,7 @@ export default function AdminReservasiPage() {
         </div>
 
         {error ? (
-          <p className="mb-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
             Terjadi kesalahan: {error}
           </p>
         ) : null}
@@ -247,20 +243,18 @@ export default function AdminReservasiPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-md">
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-slate-900">Pending Approval</h2>
-                <p className="text-sm text-slate-600">
-                  Reservasi yang menunggu persetujuan
-                </p>
+                <h2 className="text-xl font-semibold text-slate-900">Menunggu Persetujuan</h2>
+                <p className="text-sm text-slate-600">Reservasi yang belum diproses</p>
               </div>
               {renderTable(pendingData, true)}
             </section>
 
-            <section className="mb-12 rounded-2xl border border-gray-100 bg-white p-6 shadow-md">
+            <section className="mb-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-slate-900">Riwayat Reservasi</h2>
-                <p className="text-sm text-slate-600">Reservasi yang sudah diproses</p>
+                <p className="text-sm text-slate-600">Reservasi yang sudah disetujui atau ditolak</p>
               </div>
               {renderTable(historyData, false)}
             </section>
