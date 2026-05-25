@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import {
   buildReservasiInsert,
   ReservationFormValues,
@@ -23,6 +24,7 @@ import {
 } from "./FormUI";
 
 export default function ReservationForm() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -85,6 +87,7 @@ export default function ReservationForm() {
 
     alert("Reservasi berhasil terkirim");
     reset();
+    router.push("/reservasi/riwayat");
   };
 
   const handleKebutuhanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
