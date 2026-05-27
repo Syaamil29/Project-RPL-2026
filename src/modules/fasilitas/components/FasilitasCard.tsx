@@ -16,6 +16,7 @@ export default function FasilitasCard({ item, onClick }: Props) {
           alt={item.nama}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
       </div>

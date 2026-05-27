@@ -41,8 +41,8 @@ export default function HomePage() {
   
   const fasilitasUnggulanIds = [
     "hidroponik-substrat", 
-    "hidroponik-nft", 
-    "smart-greenhouse-nursery"
+    "plant-factory", 
+    "sobatani-fresh"
   ];
 
   const topFasilitas = fasilitasUnggulanIds
@@ -155,25 +155,25 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-4xl px-4 pt-12 text-center">
-          <h1 className="font-heading text-3xl font-bold text-[#1F17A1] sm:text-4xl md:text-5xl leading-tight tracking-tight">
-            Wisata Edukasi dan Inovasi<br/> Pertanian di ATP IPB
+        <div className="mx-auto w-full max-w-4xl px-4 pt-10 sm:pt-12 text-center">
+          <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-[#1F17A1] leading-snug sm:leading-tight tracking-tight">
+            Wisata Edukasi dan Inovasi <br className="hidden sm:inline" />Pertanian di ATP IPB
           </h1>
-          <p className="font-body mx-auto mt-4 max-w-2xl text-sm md:text-base text-slate-600 font-light leading-relaxed">
-            Jelajahi fasilitas Agribusiness Technology Park, lihat produk unggulan,<br/>
+          <p className="font-body mx-auto mt-4 max-w-2xl text-xs sm:text-sm md:text-base text-slate-600 font-light leading-relaxed px-2 sm:px-0">
+            Jelajahi fasilitas Agribusiness Technology Park, lihat produk unggulan, <br className="hidden md:inline" />
             dan lakukan reservasi kunjungan secara online dengan mudah.
           </p>
 
-          <div className="font-body mt-8 flex flex-wrap justify-center gap-4">
+          <div className="font-body mt-8 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 w-full max-w-md mx-auto sm:max-w-none px-4 sm:px-0">
             <button
               onClick={() => void handleReservasiHero()}
-              className="rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white transition-all hover:bg-[#20188A] shadow-sm hover:shadow-md"
+              className="w-auto rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white transition-all hover:bg-[#20188A] shadow-sm hover:shadow-md active:scale-98"
             >
               Reservasi Sekarang
             </button>
             <button
               onClick={() => void handleCekRiwayat()}
-              className="rounded-full border border-[#2D24B5] bg-white px-8 py-3 text-sm md:text-base font-semibold text-[#2D24B5] transition-all hover:bg-blue-50"
+              className="w-auto rounded-full border border-[#2D24B5] bg-white px-8 py-3 text-sm md:text-base font-semibold text-[#2D24B5] transition-all hover:bg-blue-50 active:scale-98"
             >
               Cek Riwayat Reservasi
             </button>
@@ -184,24 +184,76 @@ export default function HomePage() {
       {/* TENTANG SECTION */}
       <section id="tentang" className="w-full bg-[#F5F7FF] py-16">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <div className="grid items-center gap-10 md:grid-cols-2">
-            <div className="flex flex-col gap-5 text-left">
-              <h2 className="font-heading text-4xl font-bold text-[#1F17A1] sm:text-5xl leading-tight">
+          
+          {/* ================= TAMPILAN MOBILE (Title -> Photo -> Explanation -> Button) ================= */}
+          <div className="block md:hidden text-center space-y-6">
+            {/* 1. JUDUL */}
+            <div className="space-y-2">
+              <h2 className="font-heading text-3xl font-bold text-[#1F17A1] leading-tight">
                 Tentang ATP
               </h2>
-              
-              <p className="font-body text-sm md:text-base leading-relaxed text-slate-700">
-                {DATA_PROFIL_ATP.deskripsi[0]}
-              </p>
-              
-              <Link href="/profil" className="font-body w-fit mt-2 rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
+              <div className="h-1 w-12 bg-[#2D24B5] mx-auto rounded-full"></div>
+            </div>
+            
+            {/* 2. FOTO */}
+            <div className="relative w-full h-[220px] overflow-hidden rounded-2xl shadow-md">
+              <Image 
+                src="/images/profil/ProfilATP.webp" 
+                alt="ATP IPB" 
+                fill 
+                className="object-cover" 
+                 sizes="(max-width: 768px) 100vw, 400px"
+              />
+            </div>
+            
+            {/* 3. PENJELASAN */}
+            <p className="font-body text-sm leading-relaxed text-slate-700 text-left">
+              {DATA_PROFIL_ATP.deskripsi[0]}
+            </p>
+            
+            {/* 4. TOMBOL */}
+            <div className="pt-1">
+              <Link 
+                href="/profil" 
+                className="font-body inline-flex items-center justify-center rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#20188A]"
+              >
                 Detail Profil
               </Link>
             </div>
-            <div className="relative h-[250px] w-full overflow-hidden rounded-2xl md:h-[320px] shadow-md">
-              <Image src="/images/profil/ProfilATP.webp" alt="ATP IPB" fill className="object-cover"  sizes="(max-width: 768px) 100vw, 50vw"/>
+          </div>
+
+          {/* ================= TAMPILAN DESKTOP (Side-by-Side - Kiri: Info, Kanan: Foto) ================= */}
+          <div className="hidden md:grid md:grid-cols-2 items-center gap-10">
+            {/* Kiri: Title, Explanation, Button */}
+            <div className="flex flex-col gap-5 text-left">
+              <h2 className="font-heading text-4xl font-bold text-[#1F17A1] lg:text-5xl leading-tight">
+                Tentang ATP
+              </h2>
+              
+              <p className="font-body text-sm lg:text-base leading-relaxed text-slate-700">
+                {DATA_PROFIL_ATP.deskripsi[0]}
+              </p>
+              
+              <Link 
+                href="/profil" 
+                className="font-body w-fit mt-2 rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]"
+              >
+                Detail Profil
+              </Link>
+            </div>
+
+            {/* Kanan: Foto */}
+            <div className="relative h-[320px] lg:h-[380px] w-full overflow-hidden rounded-2xl shadow-md group">
+              <Image 
+                src="/images/profil/ProfilATP.webp" 
+                alt="ATP IPB" 
+                fill 
+                className="object-cover transform group-hover:scale-105 transition duration-700 ease-in-out"  
+                sizes="50vw"
+              />
             </div>
           </div>
+
         </div>
       </section>
 
@@ -225,9 +277,9 @@ export default function HomePage() {
                   <Image src={item.gambarUtama} alt={item.nama} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
                 </div>
                 <div className="flex flex-col flex-1 p-5">
-                  <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
                     <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.nama}</h3>
-                    <div className="font-body flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-[10px] font-bold text-slate-600 bg-slate-50 whitespace-nowrap">
+                    <div className="font-body self-start sm:self-auto flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1 text-[10px] font-bold text-slate-600 bg-slate-50 whitespace-nowrap">
                       🌱 {item.kategori.split(' ')[0]}
                     </div>
                   </div>
@@ -388,10 +440,24 @@ export default function HomePage() {
         <h2 className="font-heading text-center text-3xl md:text-4xl font-bold text-[#1F17A1]">Cara Reservasi</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {langkahReservasi.map((item) => (
-            <article key={item.step} className="flex flex-col items-center justify-center rounded-2xl bg-[#EEF2FF] p-8 text-center transition-transform hover:-translate-y-1 hover:shadow-sm">
-              <div className="font-body flex h-10 w-10 items-center justify-center rounded-full bg-[#2D24B5] text-sm font-bold text-white shadow-sm">{item.step}</div>
-              <h3 className="font-heading mt-4 text-lg font-bold text-[#1F17A1]">{item.title}</h3>
-              <p className="font-body mt-2 text-xs md:text-sm text-[#1F17A1]/80 leading-relaxed">{item.description}</p>
+            <article 
+              key={item.step} 
+              className="flex flex-row md:flex-col items-start md:items-center p-5 md:p-8 rounded-2xl bg-[#EEF2FF] text-left md:text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md gap-4 md:gap-0"
+            >
+              {/* Step Bubble */}
+              <div className="font-body flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2D24B5] text-sm font-bold text-white shadow-sm md:mb-4">
+                {item.step}
+              </div>
+              
+              {/* Text Content */}
+              <div className="flex-1">
+                <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">
+                  {item.title}
+                </h3>
+                <p className="font-body mt-1 md:mt-2 text-xs md:text-sm text-[#1F17A1]/80 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
             </article>
           ))}
         </div>
