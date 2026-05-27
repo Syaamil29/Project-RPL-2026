@@ -28,6 +28,7 @@ export default function FasilitasModal({ item, onClose }: Props) {
             alt={item.nama}
             fill
             className="object-cover"
+            sizes="(max-width: 768px) 100vw, 800px"
           />
         </div>
 

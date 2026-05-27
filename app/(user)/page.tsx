@@ -202,7 +202,7 @@ export default function HomePage() {
                 alt="ATP IPB" 
                 fill 
                 className="object-cover" 
-                sizes="100vw"
+                 sizes="(max-width: 768px) 100vw, 400px"
               />
             </div>
             
