@@ -64,16 +64,18 @@ export default function FasilitasModal({ item, onClose }: Props) {
               </ul>
             </div>
 
-            <div>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Komoditas</h3>
-              <div className="flex flex-wrap gap-2">
-                {item.komoditas.map((tag) => (
-                  <span key={tag} className="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg border border-slate-200">
-                    {tag}
-                  </span>
-                ))}
+            {item.komoditas && item.komoditas.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Komoditas</h3>
+                <div className="flex flex-wrap gap-2">
+                  {item.komoditas.map((tag) => (
+                    <span key={tag} className="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg border border-slate-200">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>
