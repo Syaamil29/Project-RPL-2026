@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import {
@@ -43,6 +44,20 @@ export default function ReservationForm() {
       jumlahPengunjung: undefined as unknown as number,
     },
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const dateParam = params.get("date");
+      const kebutuhanParam = params.get("kebutuhan");
+      if (dateParam) {
+        setValue("tanggalKunjungan", dateParam);
+      }
+      if (kebutuhanParam) {
+        setValue("kebutuhan", kebutuhanParam as any);
+      }
+    }
+  }, [setValue]);
 
   const selectedKebutuhan = watch("kebutuhan");
   const kebutuhanRegister = register("kebutuhan", { required: "Pilih kebutuhan" });

@@ -9,19 +9,19 @@ import { isAdmin } from "@/lib/auth"
 const menuItems = [
   { label: "Home", href: "/#home" },
   { label: "Profil", href: "/#tentang" },
-  { label: "Fasilitas", href: "/#fasilitas" }, 
-  { label: "Produk", href: "/#produk" }, 
+  { label: "Fasilitas", href: "/#fasilitas" },
+  { label: "Produk", href: "/#produk" },
 ] as const;
 
 export default function Header() {
   const router = useRouter()
   const pathname = usePathname()
   const [activeSection, setActiveSection] = useState("home")
-  
+
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
-  
+
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -45,7 +45,7 @@ export default function Header() {
     }
   }, [router]);
 
-useEffect(() => {
+  useEffect(() => {
     if (pathname !== "/") return;
 
     const onScroll = () => {
@@ -63,8 +63,8 @@ useEffect(() => {
       setActiveSection(current);
     };
 
-    onScroll(); 
-    
+    onScroll();
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [pathname]);
@@ -79,13 +79,13 @@ useEffect(() => {
 
         if (isMounted) {
           const email = user?.email ?? null;
-          const name = user?.user_metadata?.full_name ?? email?.split('@')[0] ?? null; 
-          const avatar = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null; 
-          
+          const name = user?.user_metadata?.full_name ?? email?.split('@')[0] ?? null;
+          const avatar = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null;
+
           setUserEmail(email);
           setUserName(name);
           setUserAvatar(avatar);
-          
+
           if (email) {
             setIsAdminUser(isAdmin(email));
             handleRouting(email);
@@ -112,11 +112,11 @@ useEffect(() => {
         setUserName(name);
         setUserAvatar(avatar);
         setIsAdminUser(email ? isAdmin(email) : false);
-        
+
         if (event === "SIGNED_IN" && email) {
           handleRouting(email);
         }
-        
+
         setAuthLoading(false);
       }
     });
@@ -170,11 +170,11 @@ useEffect(() => {
     if (pathname === "/") {
       return activeSection === href.replace("/#", "");
     }
-    
+
     if (href === "/#tentang" && pathname.startsWith("/profil")) return true;
     if (href === "/#fasilitas" && pathname.startsWith("/fasilitas")) return true;
     if (href === "/#produk" && (pathname.startsWith("/katalog") || pathname.startsWith("/produk"))) return true;
-    
+
     return false;
   };
 
@@ -182,11 +182,11 @@ useEffect(() => {
     <>
       <header className="sticky top-0 z-40 border-b border-gray-100 bg-white shadow-sm transition-all">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          
+
           <div className="flex flex-1 items-center justify-start gap-2 sm:gap-4">
             {/* Tombol Hamburger Mobile (Hanya muncul di md ke bawah) */}
             <div className="flex items-center md:hidden">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-1 -ml-1 text-slate-700 focus:outline-none"
                 aria-label="Buka Menu"
@@ -205,24 +205,33 @@ useEffect(() => {
           {/* Navigasi Desktop (Disembunyikan di Mobile) */}
           <nav className="font-body hidden items-center gap-8 md:flex">
             {menuItems.map((item) => {
-              const isActive = checkIsActive(item.href); 
+              const isActive = checkIsActive(item.href);
               return (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`text-sm font-semibold transition duration-300 hover:text-[#2D24B5] ${
-                    isActive ? "text-[#2D24B5]" : "text-slate-700"
-                  }`}
+                  className={`text-sm font-semibold transition duration-300 hover:text-[#2D24B5] ${isActive ? "text-[#2D24B5]" : "text-slate-700"
+                    }`}
                 >
                   {item.label}
                 </Link>
               )
             })}
+            <Link
+              href="/reservasi/jadwal"
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all border ${
+                pathname === "/reservasi/jadwal"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                  : "bg-blue-50 text-[#2D24B5] border-blue-200 hover:bg-blue-100"
+              }`}
+            >
+              Cek Jadwal
+            </Link>
           </nav>
 
           {/* Action Desktop (Disembunyikan di Mobile)  */}
           <div className="font-body flex flex-1 items-center justify-end gap-3 md:gap-6">
-            
+
             {/* Menu Aksi Khusus Desktop */}
             <div className="hidden items-center gap-6 md:flex">
               <button
@@ -231,7 +240,7 @@ useEffect(() => {
               >
                 Reservasi
               </button>
-              <button 
+              <button
                 onClick={() => handleProtectedAction("/reservasi/riwayat")}
                 className="text-sm font-semibold text-slate-700 transition hover:text-[#2D24B5]"
               >
@@ -241,19 +250,19 @@ useEffect(() => {
             </div>
 
             {!authLoading && (
-              userName ? ( 
+              userName ? (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="h-9 w-9 overflow-hidden rounded-full border border-gray-200 flex-shrink-0 cursor-pointer transition hover:ring-2 hover:ring-[#2D24B5] hover:ring-offset-2" 
+                    <div
+                      className="h-9 w-9 overflow-hidden rounded-full border border-gray-200 flex-shrink-0 cursor-pointer transition hover:ring-2 hover:ring-[#2D24B5] hover:ring-offset-2"
                       title={userName}
                     >
                       {userAvatar ? (
-                        <img 
-                          src={userAvatar} 
-                          alt={userName} 
+                        <img
+                          src={userAvatar}
+                          alt={userName}
                           className="h-full w-full object-cover"
-                          referrerPolicy="no-referrer" 
+                          referrerPolicy="no-referrer"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-slate-100 text-sm font-bold text-slate-600">
@@ -289,21 +298,19 @@ useEffect(() => {
         </div>
       </header>
 
-      <div 
-        className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 md:hidden ${
-          isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+      <div
+        className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
         onClick={() => setIsMobileMenuOpen(false)}
       />
 
-      <aside 
-        className={`fixed top-0 left-0 bottom-0 z-50 w-72 bg-white shadow-2xl transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+      <aside
+        className={`fixed top-0 left-0 bottom-0 z-50 w-72 bg-white shadow-2xl transition-transform duration-300 ease-in-out md:hidden flex flex-col ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex items-center justify-between px-6 py-5">
           <img src="/logo-ipb.svg" alt="IPB Logo" className="h-10 w-auto" />
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="p-1 text-slate-400 hover:text-slate-700 transition"
           >
@@ -317,20 +324,27 @@ useEffect(() => {
         <div className="font-heading flex-1 overflow-y-auto px-6 py-4">
           <div className="flex flex-col gap-6">
             {menuItems.map((item) => {
-              const isActive = checkIsActive(item.href); 
+              const isActive = checkIsActive(item.href);
               return (
                 <Link
                   key={item.label}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-lg font-bold transition-colors ${
-                    isActive ? "text-[#2D24B5]" : "text-[#667085] hover:text-[#2D24B5]"
-                  }`}
+                  className={`text-lg font-bold transition-colors ${isActive ? "text-[#2D24B5]" : "text-[#667085] hover:text-[#2D24B5]"
+                    }`}
                 >
                   {item.label}
                 </Link>
               )
             })}
+
+            <Link
+              href="/reservasi/jadwal"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="inline-block rounded-full bg-blue-50 px-4 py-2 text-center text-sm font-bold text-[#2D24B5] border border-blue-200 hover:bg-blue-100 transition-all"
+            >
+              Cek Jadwal
+            </Link>
 
             <hr className="my-2 border-slate-200" />
 
@@ -373,7 +387,7 @@ useEffect(() => {
                         {isAdminUser && <span className="text-[10px] text-[#2D24B5] font-bold">Admin</span>}
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
