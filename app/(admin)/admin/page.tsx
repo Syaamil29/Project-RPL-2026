@@ -8,6 +8,12 @@ const adminMenus = [
     cta: "Buka Reservasi",
   },
   {
+    title: "Visualisasi Jadwal",
+    description: "Pantau ketersediaan slot dan kelola status reservasi secara visual",
+    href: "/admin/jadwal",
+    cta: "Buka Jadwal",
+  },
+  {
     title: "Kelola Produk",
     description: "Kelola data katalog produk, harga, dan visibilitas",
     href: "/admin/katalog",

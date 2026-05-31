@@ -1,6 +1,8 @@
 import Navbar from "@/components/Header";
 import Footer from "@/components/Footer";
 
+export const revalidate = 300; // Meng-cache footer selama 5 menit untuk efisiensi query database Supabase
+
 export default function UserLayout({
   children,
 }: {

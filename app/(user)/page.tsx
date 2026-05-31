@@ -3,20 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { type TouchEvent, useMemo, useState, useEffect, useEffect} from "react";
 import { supabase } from "@/lib/supabase";
-
-const facilities = [
-  { id: 1, title: "Green House Nursery", description: "Belajar budidaya tanaman dengan teknologi modern.", capacity: 20, image: "/images-1-facilities.png" },
-  { id: 2, title: "Hydroponic Lab", description: "Eksplorasi sistem hidroponik berbasis teknologi presisi.", capacity: 25, image: "/images-1-facilities.png" },
-  { id: 3, title: "Biotech Lab", description: "Riset bioteknologi untuk inovasi pertanian modern.", capacity: 15, image: "/images-1-facilities.png" },
-];
+import { CATALOG_PRODUCTS } from "@/lib/catalog-products";
+import { DATA_PROFIL_ATP } from '@/src/modules/profil/data';
+import { DATA_FASILITAS } from '@/src/modules/fasilitas/data';
+import FasilitasModal from '@/src/modules/fasilitas/components/FasilitasModal';
 
 const langkahReservasi = [
   { step: "1", title: "Isi Form Reservasi", description: "Lengkapi data kunjungan melalui form online dengan mudah." },
   { step: "2", title: "Tunggu Konfirmasi", description: "Tim ATP IPB akan meninjau pengajuan dan mengirim konfirmasi." },
   { step: "3", title: "Kunjungi ATP IPB", description: "Datang sesuai jadwal untuk pengalaman kunjungan yang terarah." },
 ];
+
+const heroSlides = [
+  { src: "/images/hero/hero-image2.webp", alt: "Tampilan Depan ATP" },
+  { src: "/images/hero/hero-image3.webp", alt: "Aktivitas Edukasi ATP" },
+  { src: "/images/hero/hero-image4.webp", alt: "Aktivitas ATP" },
+];
+
 
 export default function HomePage() {
   const router = useRouter();
@@ -118,6 +123,32 @@ export default function HomePage() {
     fetchLandingProducts();
     fetchLandingKegiatan();
   }, []);
+  const topProducts = useMemo(() => CATALOG_PRODUCTS.slice(0, 10), []);
+  const [currentProductIdx, setCurrentProductIdx] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+
+  const [currentHeroIdx, setCurrentHeroIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentHeroIdx((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+  
+  const fasilitasUnggulanIds = [
+    "hidroponik-substrat", 
+    "plant-factory", 
+    "sobatani-fresh"
+  ];
+
+  const topFasilitas = fasilitasUnggulanIds
+    .map(id => DATA_FASILITAS.find(item => item.id === id))
+    .filter(item => item !== undefined);
+  
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedFasilitas = DATA_FASILITAS.find(item => item.id === selectedId);
 
   const handleReservasiHero = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -145,6 +176,39 @@ export default function HomePage() {
     }
   };
 
+  const productCount = topProducts.length;
+  const visibleCount =
+    productCount >= 5 ? 5 : productCount >= 3 ? 3 : Math.max(1, productCount);
+  const sideSlots = Math.floor(visibleCount / 2);
+
+  const wrapIndex = (idx: number) =>
+    (idx + productCount) % (productCount === 0 ? 1 : productCount);
+
+  const nextProduct = () => {
+    if (productCount <= 1) return;
+    setCurrentProductIdx((prev) => wrapIndex(prev + 1));
+  };
+
+  const prevProduct = () => {
+    if (productCount <= 1) return;
+    setCurrentProductIdx((prev) => wrapIndex(prev - 1));
+  };
+
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    setTouchStartX(e.touches[0]?.clientX ?? null);
+  };
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX === null) return;
+    const endX = e.changedTouches[0]?.clientX ?? touchStartX;
+    const delta = endX - touchStartX;
+    if (Math.abs(delta) > 40) {
+      if (delta < 0) nextProduct();
+      if (delta > 0) prevProduct();
+    }
+    setTouchStartX(null);
+  };
+
   return (
     <main className="w-full bg-white text-slate-800">
       <style jsx global>{`
@@ -155,36 +219,59 @@ export default function HomePage() {
       `}</style>
 
       {/* HERO SECTION */}
-      <section id="home" className="w-full bg-white pb-16">
-        <div className="relative w-full h-[40vh] min-h-[300px] sm:h-[450px]">
-          <Image src="/hero-image.png" alt="ATP Slider Full" fill className="object-cover" priority />
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-             <div className="h-2 w-2 rounded-full bg-[#2D24B5]"></div>
-             <div className="h-2 w-2 rounded-full bg-white/70"></div>
-             <div className="h-2 w-2 rounded-full bg-white/70"></div>
+        <section id="home" className="w-full bg-white pb-16">
+        <div className="relative w-full h-[40vh] min-h-[300px] sm:h-[450px] overflow-hidden">
+          {heroSlides.map((slide, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentHeroIdx ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+            >
+              <Image 
+                src={slide.src} 
+                alt={slide.alt} 
+                fill 
+                className="object-cover" 
+                priority={index === 0} 
+              />
+            </div>
+          ))}
+
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 z-20">
+            {heroSlides.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setCurrentHeroIdx(index)}
+                aria-label={`Go to slide ${index + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === currentHeroIdx ? "bg-[#2D24B5] w-4" : "bg-white/70 hover:bg-white"
+                }`}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-4xl px-4 pt-12 text-center">
-          <h1 className="font-heading text-3xl font-bold text-[#1F17A1] sm:text-4xl md:text-5xl leading-tight tracking-tight">
-            Wisata Edukasi dan Inovasi<br/> Pertanian di ATP IPB
+        <div className="mx-auto w-full max-w-4xl px-4 pt-10 sm:pt-12 text-center">
+          <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-[#1F17A1] leading-snug sm:leading-tight tracking-tight">
+            Wisata Edukasi dan Inovasi <br className="hidden sm:inline" />Pertanian di ATP IPB
           </h1>
-          <p className="font-body mx-auto mt-4 max-w-2xl text-sm md:text-base text-slate-600 font-light leading-relaxed">
-            Jelajahi fasilitas Agribusiness Technology Park, lihat produk unggulan,<br/>
+          <p className="font-body mx-auto mt-4 max-w-2xl text-xs sm:text-sm md:text-base text-slate-600 font-light leading-relaxed px-2 sm:px-0">
+            Jelajahi fasilitas Agribusiness Technology Park, lihat produk unggulan, <br className="hidden md:inline" />
             dan lakukan reservasi kunjungan secara online dengan mudah.
           </p>
 
-          <div className="font-body mt-8 flex flex-wrap justify-center gap-4">
+          <div className="font-body mt-8 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 w-full max-w-md mx-auto sm:max-w-none px-4 sm:px-0">
             <button
               onClick={() => void handleReservasiHero()}
-              className="rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white transition-all hover:bg-[#20188A] shadow-sm hover:shadow-md"
+              className="w-auto rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white transition-all hover:bg-[#20188A] shadow-sm hover:shadow-md active:scale-98"
             >
               Reservasi Sekarang
             </button>
-            {/*  fungsi handleCekRiwayat */}
             <button
               onClick={() => void handleCekRiwayat()}
-              className="rounded-full border border-[#2D24B5] bg-white px-8 py-3 text-sm md:text-base font-semibold text-[#2D24B5] transition-all hover:bg-blue-50"
+              className="w-auto rounded-full border border-[#2D24B5] bg-white px-8 py-3 text-sm md:text-base font-semibold text-[#2D24B5] transition-all hover:bg-blue-50 active:scale-98"
             >
               Cek Riwayat Reservasi
             </button>
@@ -195,23 +282,73 @@ export default function HomePage() {
       {/* TENTANG SECTION */}
       <section id="tentang" className="w-full bg-[#F5F7FF] py-16">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <div className="grid items-center gap-10 md:grid-cols-2">
-            <div className="flex flex-col gap-5 text-left">
-              <h2 className="font-heading text-4xl font-bold text-[#1F17A1] sm:text-5xl leading-tight">
+          
+          {/* ================= TAMPILAN MOBILE (Title -> Photo -> Explanation -> Button) ================= */}
+          <div className="block md:hidden text-center space-y-6">
+            {/* 1. JUDUL */}
+            <div className="space-y-2">
+              <h2 className="font-heading text-3xl font-bold text-[#1F17A1] leading-tight">
                 Tentang ATP
               </h2>
-              <p className="font-body text-sm md:text-base leading-relaxed text-slate-700">
-                Agribusiness and Technology Park (ATP) IPB merupakan pusat pengembangan
-              pertanian modern yang menggabungkan edukasi, inovasi, dan produksi.
-              ATP menyediakan fasilitas pembelajaran, kunjungan edukatif, serta produk
-              pertanian unggulan.
-              </p>
-              <Link href="/profil" className="font-body w-fit mt-2 rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
+              <div className="h-1 w-12 bg-[#2D24B5] mx-auto rounded-full"></div>
+            </div>
+            
+            {/* 2. FOTO */}
+            <div className="relative w-full h-[220px] overflow-hidden rounded-2xl shadow-md">
+              <Image 
+                src="/images/profil/ProfilATP.webp" 
+                alt="ATP IPB" 
+                fill 
+                className="object-cover" 
+                 sizes="(max-width: 768px) 100vw, 400px"
+              />
+            </div>
+            
+            {/* 3. PENJELASAN */}
+            <p className="font-body text-sm leading-relaxed text-slate-700 text-left">
+              {DATA_PROFIL_ATP.deskripsi[0]}
+            </p>
+            
+            {/* 4. TOMBOL */}
+            <div className="pt-1">
+              <Link 
+                href="/profil" 
+                className="font-body inline-flex items-center justify-center rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#20188A]"
+              >
                 Detail Profil
               </Link>
             </div>
-            <div className="relative h-[250px] w-full overflow-hidden rounded-2xl md:h-[320px] shadow-md">
-              <Image src="/tentang-image.png" alt="ATP IPB" fill className="object-cover" />
+          </div>
+
+          {/* ================= TAMPILAN DESKTOP (Side-by-Side - Kiri: Info, Kanan: Foto) ================= */}
+          <div className="hidden md:grid md:grid-cols-2 items-center gap-10">
+            {/* Kiri: Title, Explanation, Button */}
+            <div className="flex flex-col gap-5 text-left">
+              <h2 className="font-heading text-4xl font-bold text-[#1F17A1] lg:text-5xl leading-tight">
+                Tentang ATP
+              </h2>
+              
+              <p className="font-body text-sm lg:text-base leading-relaxed text-slate-700">
+                {DATA_PROFIL_ATP.deskripsi[0]}
+              </p>
+              
+              <Link 
+                href="/profil" 
+                className="font-body w-fit mt-2 rounded-full bg-[#2D24B5] px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]"
+              >
+                Detail Profil
+              </Link>
+            </div>
+
+            {/* Kanan: Foto */}
+            <div className="relative h-[320px] lg:h-[380px] w-full overflow-hidden rounded-2xl shadow-md group">
+              <Image 
+                src="/images/profil/ProfilATP.webp" 
+                alt="ATP IPB" 
+                fill 
+                className="object-cover transform group-hover:scale-105 transition duration-700 ease-in-out"  
+                sizes="50vw"
+              />
             </div>
           </div>
         </div>
@@ -374,46 +511,223 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FASILITAS SECTION */}
-      <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
-        <div className="text-center">
-          {/* */}
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
-            Fasilitas
-          </h2>
-          
-          {/* */}
-          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-            Jelajahi fasilitas utama ATP IPB <br/>
-            untuk kunjungan edukatif dan penelitian
-          </p>
-        </div>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {facilities.map((item) => (
-            <article key={item.id} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
-              <div className="relative h-[200px] w-full overflow-hidden bg-slate-100">
-                <Image src={item.image} alt={item.title} fill className="object-cover" />
-              </div>
-              <div className="flex flex-col flex-1 p-5">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.title}</h3>
-                  <div className="font-body flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-50">
-                    👤 {item.capacity}
+      {/* KEGIATAN BENTO GRID SECTION */}
+      <section id="kegiatan" className="w-full bg-[#F5F7FF] py-16">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <span className="font-body text-xs font-bold uppercase tracking-wider text-[#2D24B5] bg-blue-50 px-3 py-1 rounded-full">
+              Kegiatan Kami
+            </span>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1] mt-3">
+              Jelajahi Kegiatan di ATP
+            </h2>
+            <p className="font-body mx-auto mt-3 max-w-xl text-slate-600 text-sm md:text-base leading-relaxed">
+              Ikuti berbagai program edukatif, petualangan luar ruangan, riset, dan bisnis pertanian modern langsung bersama para pakar IPB.
+            </p>
+          </div>
+
+          {/* Asymmetrical Bento Box Grid layout */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:grid-rows-2 md:h-[500px] w-full">
+            
+            {/* Card 1: Agroedutourism (Hero Card - col-span-2 row-span-2) */}
+            {kegiatanList[0] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl md:col-span-2 md:row-span-2 h-[300px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[0].src}
+                  alt={kegiatanList[0].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-6 md:p-8 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-xl md:text-2xl font-bold text-white leading-tight">
+                    {kegiatanList[0].nama}
+                  </h3>
+                  <p className="font-body text-xs text-slate-200 mt-2 line-clamp-2 max-w-md font-light leading-relaxed">
+                    {kegiatanList[0].deskripsi}
+                  </p>
+                  <div className="font-body mt-4 text-xs font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
                   </div>
                 </div>
-                <p className="font-body text-xs md:text-sm text-slate-600 flex-1 line-clamp-2">{item.description}</p>
-                <button className="font-body mt-5 w-full rounded-full bg-[#2D24B5] py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#20188A]">Detail</button>
-              </div>
-            </article>
-          ))}
-        </div>
-        {/* FOOTER BUTTON */}
-        <div className="mt-12 flex justify-center">
-          <button className="rounded-full bg-blue-700 px-8 py-3 text-white font-semibold hover:bg-blue-800">
-            Lihat Semua Fasilitas
-          </button>
+              </Link>
+            )}
+
+            {/* Card 2: Agripreneur Camp (col-span-1 row-span-1) */}
+            {kegiatanList[1] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[1].src}
+                  alt={kegiatanList[1].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[1].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[1].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 3: Peminjaman Ruangan (col-span-1 row-span-1) */}
+            {kegiatanList[2] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[2].src}
+                  alt={kegiatanList[2].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[2].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[2].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 4: Camping (col-span-1 row-span-1) */}
+            {kegiatanList[3] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[3].src}
+                  alt={kegiatanList[3].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[3].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[3].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 5: Survey / Wawancara (col-span-1 row-span-1) */}
+            {kegiatanList[4] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[4].src}
+                  alt={kegiatanList[4].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[4].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[4].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+          </div>
         </div>
       </section>
+
+      {/* FASILITAS SECTION */}
+      <div className="w-full bg-white border-b-2 border-slate-100">
+        <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 relative">
+          <div className="text-center">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">
+              Fasilitas
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+              Jelajahi fasilitas utama ATP IPB <br/>
+              untuk kunjungan edukatif dan penelitian
+            </p>
+          </div>
+          
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {topFasilitas.map((item) => (
+              <article key={item.id} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
+                <div className="relative h-[200px] w-full overflow-hidden bg-slate-100">
+                  <Image src={item.gambarUtama} alt={item.nama} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                </div>
+                <div className="flex flex-col flex-1 p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                    <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">{item.nama}</h3>
+                    <div className="font-body self-start sm:self-auto flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1 text-[10px] font-bold text-slate-600 bg-slate-50 whitespace-nowrap">
+                      🌱 {item.kategori.split(' ')[0]}
+                    </div>
+                  </div>
+                  
+                  <p className="font-body text-xs md:text-sm text-slate-600 flex-1 line-clamp-2">
+                    {item.deskripsiSingkat}
+                  </p>
+                  
+                  <button 
+                    onClick={() => setSelectedId(item.id)} 
+                    className="font-body mt-auto inline-flex items-center justify-center w-full py-2.5 px-4 bg-slate-50 text-[#231896] text-sm font-bold rounded-xl border border-slate-200 hover:bg-[#231896] hover:text-white transition-all duration-300"
+                  >
+                    Detail
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+          
+          <div className="mt-12 flex justify-center">
+            <Link 
+              href="/fasilitas" 
+              className="rounded-full bg-[#2D24B5] px-8 py-3 text-white font-semibold hover:bg-blue-800 transition-all hover:-translate-y-0.5 shadow-sm hover:shadow"
+            >
+              Lihat Semua Fasilitas ({DATA_FASILITAS.length})
+            </Link>
+          </div>
+
+          {selectedFasilitas && (
+            <FasilitasModal 
+              item={selectedFasilitas} 
+              onClose={() => setSelectedId(null)} 
+            />
+          )}
+
+        </section>
+      </div>
 
       {/* PRODUK SECTION */}
       <section id="produk" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
@@ -474,10 +788,24 @@ export default function HomePage() {
         <h2 className="font-heading text-center text-3xl md:text-4xl font-bold text-[#1F17A1]">Cara Reservasi</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {langkahReservasi.map((item) => (
-            <article key={item.step} className="flex flex-col items-center justify-center rounded-2xl bg-[#EEF2FF] p-8 text-center transition-transform hover:-translate-y-1 hover:shadow-sm">
-              <div className="font-body flex h-10 w-10 items-center justify-center rounded-full bg-[#2D24B5] text-sm font-bold text-white shadow-sm">{item.step}</div>
-              <h3 className="font-heading mt-4 text-lg font-bold text-[#1F17A1]">{item.title}</h3>
-              <p className="font-body mt-2 text-xs md:text-sm text-[#1F17A1]/80 leading-relaxed">{item.description}</p>
+            <article 
+              key={item.step} 
+              className="flex flex-row md:flex-col items-start md:items-center p-5 md:p-8 rounded-2xl bg-[#EEF2FF] text-left md:text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md gap-4 md:gap-0"
+            >
+              {/* Step Bubble */}
+              <div className="font-body flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2D24B5] text-sm font-bold text-white shadow-sm md:mb-4">
+                {item.step}
+              </div>
+              
+              {/* Text Content */}
+              <div className="flex-1">
+                <h3 className="font-heading text-base md:text-lg font-bold text-[#1F17A1]">
+                  {item.title}
+                </h3>
+                <p className="font-body mt-1 md:mt-2 text-xs md:text-sm text-[#1F17A1]/80 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
             </article>
           ))}
         </div>
