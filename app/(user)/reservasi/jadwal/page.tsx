@@ -9,7 +9,7 @@ import {
   normalizeStatus,
 } from "@/lib/reservation"
 
-// Helper to format date in Indonesian (e.g., 29 Mei 2026)
+/** Memformat tanggal ISO ke format Indonesia. */
 function formatIndoDate(dateStr: string): string {
   if (!dateStr) return ""
   const [year, month, day] = dateStr.split("-").map(Number)
@@ -21,7 +21,7 @@ function formatIndoDate(dateStr: string): string {
   })
 }
 
-// Check if a reservation falls on a specific date (YYYY-MM-DD)
+/** Memeriksa apakah reservasi aktif pada tanggal yang ditentukan. */
 function isReservationOnDate(row: ReservationRow, dateStr: string): boolean {
   if (!row.tanggal_kunjungan) return false
   if (row.kebutuhan === ReservationKebutuhan.PaketCamping && row.tanggal_selesai_acara) {
@@ -35,21 +35,18 @@ export default function UserJadwalPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Calendar State
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
     const today = new Date()
     return today.toISOString().split("T")[0]
   })
   
-  // Filter State
   const [filterKebutuhan, setFilterKebutuhan] = useState<string>("All")
 
   const fetchReservations = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      // Fetch all reservations that are approved or pending (ignore rejected ones)
       const { data, error: fetchError } = await supabase
         .from("reservasi")
         .select("*")
@@ -68,7 +65,6 @@ export default function UserJadwalPage() {
     void fetchReservations()
   }, [fetchReservations])
 
-  // Get days in current month and padding
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
 
@@ -76,7 +72,6 @@ export default function UserJadwalPage() {
   const lastDayOfMonth = new Date(year, month + 1, 0)
   
   const daysInMonth = lastDayOfMonth.getDate()
-  // Adjust day of week index to start on Monday (0: Mon, 1: Tue, ..., 6: Sun)
   let startDayOfWeek = firstDayOfMonth.getDay()
   startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
 
@@ -96,7 +91,6 @@ export default function UserJadwalPage() {
 
   const selectDate = (dayNum: number) => {
     const d = new Date(year, month, dayNum)
-    // Adjust for local timezone offset before string formatting
     const offset = d.getTimezoneOffset()
     const localD = new Date(d.getTime() - offset * 60 * 1000)
     setSelectedDateStr(localD.toISOString().split("T")[0])
@@ -107,18 +101,16 @@ export default function UserJadwalPage() {
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
   ]
 
-  // Filter reservations based on selected Kebutuhan
   const filteredReservations = reservations.filter((res) => {
     if (filterKebutuhan === "All") return true
     return res.kebutuhan === filterKebutuhan
   })
 
-  // Get bookings specifically for the selected date
   const selectedDateBookings = filteredReservations.filter((res) =>
     isReservationOnDate(res, selectedDateStr)
   )
 
-  // Check availability status of slots for a given date
+  /** Mendapatkan status ketersediaan umum untuk tanggal tertentu. */
   const getAvailabilityStatus = (dateStr: string) => {
     const dateBookings = filteredReservations.filter((res) =>
       isReservationOnDate(res, dateStr)
@@ -126,15 +118,12 @@ export default function UserJadwalPage() {
 
     if (dateBookings.length === 0) return "free"
     
-    // If there's any approved booking, it's considered booked
     const hasApproved = dateBookings.some((b) => normalizeStatus(b.status) === "approved")
     if (hasApproved) return "booked"
     
-    // Otherwise it's pending
     return "pending"
   }
 
-  // Pre-defined resource options for detailed view
   const resourceSlots = {
     agroedutourism: ["Sesi 1 (08.00 - 10.00)", "Sesi 2 (10.00 - 12.00)", "Sesi 3 (13.00 - 15.00)"],
     agripreneurcamp: ["Sesi 1 (Pagi)", "Sesi 2 (Siang)"],
@@ -142,7 +131,7 @@ export default function UserJadwalPage() {
     camping: ["Paket Camping / Area Acara"],
   }
 
-  // Determine availability for each resource on the selected date
+  /** Mendapatkan status ketersediaan spesifik slot/resource. */
   const getResourceStatus = (kebutuhan: ReservationKebutuhan, name: string) => {
     const matchingBookings = selectedDateBookings.filter((b) => b.kebutuhan === kebutuhan)
 
@@ -152,7 +141,7 @@ export default function UserJadwalPage() {
     }
 
     if (kebutuhan === ReservationKebutuhan.Agripreneurcamp) {
-      const match = matchingBookings.find((b) => name.startsWith(b.waktu_pelatihan || ""))
+      const match = matchingBookings.find((b) => name.startsWith(b.waktu_kunjungan || ""))
       if (match) return normalizeStatus(match.status)
     }
 
@@ -514,7 +503,7 @@ export default function UserJadwalPage() {
                             return (
                               <div key={b.id} className="flex items-center justify-between">
                                 <span className="font-medium text-slate-700">
-                                  Jam {b.waktu_survey || "-"} WIB
+                                  Jam {b.waktu_kunjungan || "-"} WIB
                                 </span>
                                 <span className={`rounded px-2 py-0.5 font-bold ${
                                   isApp ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"

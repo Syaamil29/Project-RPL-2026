@@ -18,7 +18,7 @@ export default function ServiceCommonFields({ register, errors }: Props) {
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
       <FormField
         label="Tanggal Kegiatan"
-        hint="Minimal H+1 — pengisian paling cepat besok"
+        hint="Pengisian Minimal H-1 Kegiatan"
         error={errors.tanggalKunjungan?.message}
       >
         <input

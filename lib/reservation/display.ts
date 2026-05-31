@@ -45,15 +45,15 @@ export function getReservationDetail(row: ReservationRow): string {
     case ReservationKebutuhan.Agroedutourism:
       return displayValue(row.waktu_kunjungan);
     case ReservationKebutuhan.Agripreneurcamp:
-      return joinDetail(row.paket_agripreneurcamp, row.waktu_pelatihan);
+      return joinDetail(row.paket_agripreneurcamp, row.waktu_kunjungan);
     case ReservationKebutuhan.PeminjamanRuangan:
-      return joinDetail(row.ruangan, row.waktu_peminjaman);
+      return joinDetail(row.ruangan, row.waktu_kunjungan);
     case ReservationKebutuhan.PaketCamping:
       return displayValue(row.paket_camping);
     case ReservationKebutuhan.SurveyWawancara:
       return displayValue(row.kebutuhan_survey);
     default:
-      return joinDetail(row.tujuan_kunjungan, row.sesi_kunjungan, row.waktu_kunjungan);
+      return joinDetail(row.tujuan_kunjungan, row.waktu_kunjungan);
   }
 }
 
@@ -71,7 +71,7 @@ export function getReservationSchedule(row: ReservationRow): string {
       return formatDateRange(tanggal, row.tanggal_selesai_acara);
     case ReservationKebutuhan.SurveyWawancara: {
       const datePart = formatReservationDate(tanggal);
-      const timePart = row.waktu_survey?.trim();
+      const timePart = row.waktu_kunjungan?.trim();
       if (datePart !== "-" && timePart) return `${datePart}, ${timePart.slice(0, 5)} WIB`;
       if (datePart !== "-") return datePart;
       return displayValue(timePart);
@@ -82,29 +82,7 @@ export function getReservationSchedule(row: ReservationRow): string {
 }
 
 export function getReservationDocument(row: ReservationRow): string | null {
-  let url: string | null = null;
-
-  switch (row.kebutuhan) {
-    case ReservationKebutuhan.Agroedutourism:
-      url = row.surat_kunjungan_url;
-      break;
-    case ReservationKebutuhan.Agripreneurcamp:
-      url = row.surat_pelatihan_url;
-      break;
-    case ReservationKebutuhan.PeminjamanRuangan:
-      url = row.surat_peminjaman_url;
-      break;
-    case ReservationKebutuhan.PaketCamping:
-      url = row.surat_permohonan_acara_url;
-      break;
-    case ReservationKebutuhan.SurveyWawancara:
-      url = row.surat_kegiatan_url;
-      break;
-    default:
-      break;
-  }
-
-  return url ?? row.dokumen_url ?? null;
+  return row.dokumen_url ?? null;
 }
 
 type KebutuhanBadgeStyle = { label: string; className: string };

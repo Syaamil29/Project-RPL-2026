@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistem Informasi Reservasi & Layanan ATP IPB
 
-## Getting Started
+Sistem Informasi ini dirancang khusus untuk mengelola proses pendaftaran, jadwal ketersediaan, serta administrasi layanan di **Agribusiness and Technology Park (ATP) IPB University**. Aplikasi ini mempermudah pengguna untuk melakukan reservasi berbagai kebutuhan layanan dan membantu administrator dalam menyetujui, menolak, serta memantau jadwal secara real-time.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Fitur Utama
+
+### Fitur Pengguna (User)
+- **Reservasi Dinamis:** Formulir reservasi satu pintu yang menyesuaikan input secara kondisional berdasarkan jenis kebutuhan (Agroedutourism, Agripreneurcamp, Ruangan, Camping, dan Survey/Wawancara).
+- **Validasi Cerdas:** Validasi pengisian tanggal minimum H+1 (mulai besok) serta batas tanggal selesai acara.
+- **Kalender Ketersediaan (Jadwal):** Visualisasi kalender bulanan interaktif yang menampilkan slot waktu/hari yang kosong (hijau), tentative/pending (kuning), atau penuh/booked (merah).
+- **Riwayat Reservasi:** Memantau riwayat pengajuan reservasi beserta detail dokumen dan status persetujuan dari Admin.
+
+### Fitur Administrator (Admin)
+- **Admin Dashboard:** Panel kendali utama untuk mengelola seluruh sistem ATP IPB.
+- **Kelola Reservasi:** List reservasi masuk dengan fitur persetujuan (*Approved*) dan penolakan (*Rejected*) cepat.
+- **Visualisasi Jadwal Admin:** Kalender interaktif khusus admin untuk memantau status slot dan melakukan aksi update status langsung dari kalender.
+- **Kelola Katalog & Kegiatan:** Mengelola data bento grid kegiatan ATP serta katalog produk yang dipasarkan.
+
+---
+
+## Tech Stack
+
+- **Core Framework:** Next.js (App Router)
+- **Bahasa Pemrograman:** TypeScript
+- **Database & Auth:** Supabase (PostgreSQL & Supabase Auth)
+- **Styling:** Tailwind CSS
+- **State & Form Management:** React Hook Form
+- **Type Checking:** TypeScript Compiler (`tsc`)
+
+---
+
+
+## Struktur Folder Penting
+
+```text
+├── app/                  # Next.js App Router Pages
+│   ├── (admin)/admin/    # Rute & Dashboard Halaman Admin
+│   └── (user)/reservasi/ # Rute & Form/Jadwal Halaman User
+├── components/           # Reusable React Components
+│   ├── reservation/      # Formulir & Section Reservasi Dinamis
+│   └── AdminNavbar.tsx   # Header Navigasi Khusus Admin
+├── lib/                  # Utilities, Konfigurasi & Library Core
+│   ├── supabase.ts       # Supabase Client Wrapper
+│   └── reservation/      # Core Library Sistem Reservasi
+│       ├── types.ts      # Definisi Interface & Tipe TypeScript
+│       ├── row.ts        # Model Database Row & Select Columns
+│       ├── display.ts    # Helper Formatting Display Data di UI
+│       └── build-insert.ts # Mapper Payload Form ke Row Database
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Cara Menjalankan Secara Lokal
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Kloning Repositori
+```bash
+git clone <repository-url>
+cd Project-RPL-2026
+```
 
-## Learn More
+### 2. Instalasi Dependensi
+```bash
+npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Konfigurasi Environment Variables (`.env.local`)
+Buat berkas `.env.local` di root folder proyek dan masukkan kredensial Supabase Anda:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Jalankan Development Server
+```bash
+npm run dev
+```
+Buka [http://localhost:3000](http://localhost:3000) pada browser Anda untuk melihat hasilnya.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 5. Verifikasi Tipe Data & Build
+Untuk memastikan tidak ada error TypeScript sebelum melakukan deployment:
+```bash
+npx tsc --noEmit
+npm run build
+```

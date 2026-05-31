@@ -25,12 +25,6 @@ const adminMenus = [
     href: "/admin/kegiatan",
     cta: "Buka Kegiatan",
   },
-  {
-    title: "Landing Page",
-    description: "Edit konten fasilitas, produk, dan profil",
-    href: "/admin",
-    cta: "Kelola Landing",
-  },
 ] as const
 
 export default function AdminPage() {

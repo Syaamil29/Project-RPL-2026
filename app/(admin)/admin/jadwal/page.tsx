@@ -15,7 +15,7 @@ import {
   getReservationJumlahOrang,
 } from "@/lib/reservation"
 
-// Helper to format date in Indonesian (e.g., 29 Mei 2026)
+/** Memformat tanggal ISO ke format Indonesia. */
 function formatIndoDate(dateStr: string): string {
   if (!dateStr) return ""
   const [year, month, day] = dateStr.split("-").map(Number)
@@ -27,7 +27,7 @@ function formatIndoDate(dateStr: string): string {
   })
 }
 
-// Check if a reservation falls on a specific date (YYYY-MM-DD)
+/** Memeriksa apakah reservasi aktif pada tanggal yang ditentukan. */
 function isReservationOnDate(row: ReservationRow, dateStr: string): boolean {
   if (!row.tanggal_kunjungan) return false
   if (row.kebutuhan === ReservationKebutuhan.PaketCamping && row.tanggal_selesai_acara) {
@@ -42,21 +42,18 @@ export default function AdminJadwalPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Calendar State
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
     const today = new Date()
     return today.toISOString().split("T")[0]
   })
   
-  // Filter State
   const [filterKebutuhan, setFilterKebutuhan] = useState<string>("All")
 
   const fetchReservations = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      // Admin fetches all reservations (including rejected ones for history lookup)
       const { data, error: fetchError } = await supabase
         .from("reservasi")
         .select("*")
@@ -75,7 +72,7 @@ export default function AdminJadwalPage() {
     void fetchReservations()
   }, [fetchReservations])
 
-  // Handle Quick Approval / Rejection directly from the calendar page
+  /** Mengupdate status reservasi (quick action). */
   const handleUpdateStatus = async (id: string, status: ReservationStatus) => {
     const confirmed = window.confirm(
       `Yakin ingin mengubah status reservasi menjadi "${statusLabels[status]}"?`
@@ -93,7 +90,6 @@ export default function AdminJadwalPage() {
 
       if (updateError) throw updateError
       
-      // Refresh reservation data
       await fetchReservations()
     } catch (err: any) {
       setError(err.message || "Gagal mengupdate status reservasi")
@@ -102,7 +98,6 @@ export default function AdminJadwalPage() {
     }
   }
 
-  // Get days in current month and padding
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
 
@@ -110,7 +105,6 @@ export default function AdminJadwalPage() {
   const lastDayOfMonth = new Date(year, month + 1, 0)
   
   const daysInMonth = lastDayOfMonth.getDate()
-  // Adjust day of week index to start on Monday (0: Mon, 1: Tue, ..., 6: Sun)
   let startDayOfWeek = firstDayOfMonth.getDay()
   startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
 
@@ -140,7 +134,6 @@ export default function AdminJadwalPage() {
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
   ]
 
-  // Filter reservations based on selected Kebutuhan (exclude rejected on calendar view to keep clean)
   const activeReservations = reservations.filter(res => normalizeStatus(res.status) !== "rejected")
 
   const filteredReservations = activeReservations.filter((res) => {
@@ -148,17 +141,15 @@ export default function AdminJadwalPage() {
     return res.kebutuhan === filterKebutuhan
   })
 
-  // Get bookings specifically for the selected date (can include pending and approved)
   const selectedDateBookings = filteredReservations.filter((res) =>
     isReservationOnDate(res, selectedDateStr)
   )
 
-  // Get ALL bookings (including rejected) for list view on selected date
   const selectedDateAllBookings = reservations.filter((res) =>
     isReservationOnDate(res, selectedDateStr)
   )
 
-  // Check availability status of slots for a given date
+  /** Mendapatkan status ketersediaan umum untuk tanggal tertentu. */
   const getAvailabilityStatus = (dateStr: string) => {
     const dateBookings = filteredReservations.filter((res) =>
       isReservationOnDate(res, dateStr)
@@ -166,15 +157,12 @@ export default function AdminJadwalPage() {
 
     if (dateBookings.length === 0) return "free"
     
-    // If there's any approved booking, it's considered booked
     const hasApproved = dateBookings.some((b) => normalizeStatus(b.status) === "approved")
     if (hasApproved) return "booked"
     
-    // Otherwise it's pending
     return "pending"
   }
 
-  // Pre-defined resource options for detailed view
   const resourceSlots = {
     agroedutourism: ["Sesi 1 (08.00 - 10.00)", "Sesi 2 (10.00 - 12.00)", "Sesi 3 (13.00 - 15.00)"],
     agripreneurcamp: ["Sesi 1 (Pagi)", "Sesi 2 (Siang)"],
@@ -182,7 +170,7 @@ export default function AdminJadwalPage() {
     camping: ["Paket Camping / Area Acara"],
   }
 
-  // Determine availability for each resource on the selected date
+  /** Mendapatkan status ketersediaan spesifik slot/resource. */
   const getResourceStatus = (kebutuhan: ReservationKebutuhan, name: string) => {
     const matchingBookings = selectedDateBookings.filter((b) => b.kebutuhan === kebutuhan)
 
@@ -192,7 +180,7 @@ export default function AdminJadwalPage() {
     }
 
     if (kebutuhan === ReservationKebutuhan.Agripreneurcamp) {
-      const match = matchingBookings.find((b) => name.startsWith(b.waktu_pelatihan || ""))
+      const match = matchingBookings.find((b) => name.startsWith(b.waktu_kunjungan || ""))
       if (match) return normalizeStatus(match.status)
     }
 

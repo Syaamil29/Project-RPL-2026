@@ -8,7 +8,6 @@ import { supabase } from "@/lib/supabase"
 const menuItems = [
   { label: "Dashboard", href: "/admin" },
   { label: "Profil", href: "/admin/profil" },
-  { label: "Fasilitas", href: "/admin/fasilitas" },
   { label: "Katalog", href: "/admin/katalog" },
   { label: "Kegiatan", href: "/admin/kegiatan" },
   { label: "Reservasi", href: "/admin/reservasi" },
