@@ -8,6 +8,18 @@ const adminMenus = [
     cta: "Buka Reservasi",
   },
   {
+    title: "Kelola Produk",
+    description: "Kelola data katalog produk, harga, dan visibilitas",
+    href: "/admin/katalog",
+    cta: "Buka Katalog",
+  },
+  {
+    title: "Kelola Kegiatan",
+    description: "Kelola data bento grid kegiatan ATP",
+    href: "/admin/kegiatan",
+    cta: "Buka Kegiatan",
+  },
+  {
     title: "Landing Page",
     description: "Edit konten fasilitas, produk, dan profil",
     href: "/admin",

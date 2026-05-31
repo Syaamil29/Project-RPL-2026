@@ -24,10 +24,10 @@ export default function Header() {
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
 
-  const handleRouting = useCallback((email: string | null) => {
+  const handleRouting = useCallback(async (email: string | null) => {
     if (!email) return;
 
-    const adminStatus = isAdmin(email);
+    const adminStatus = await isAdmin(email);
     setIsAdminUser(adminStatus);
 
     const intent = sessionStorage.getItem("loginIntent");
@@ -82,7 +82,9 @@ export default function Header() {
           setUserAvatar(avatar);
           
           if (email) {
-            setIsAdminUser(isAdmin(email));
+            isAdmin(email).then((adminStatus) => {
+              setIsAdminUser(adminStatus);
+            });
             handleRouting(email);
           }
         }
@@ -107,7 +109,13 @@ export default function Header() {
         setUserEmail(email);
         setUserName(name);
         setUserAvatar(avatar);
-        setIsAdminUser(email ? isAdmin(email) : false);
+        if (email) {
+          isAdmin(email).then((adminStatus) => {
+            setIsAdminUser(adminStatus);
+          });
+        } else {
+          setIsAdminUser(false);
+        }
         
         if (event === "SIGNED_IN" && email) {
           handleRouting(email);

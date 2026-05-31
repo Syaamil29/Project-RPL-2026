@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   const isPathAdmin = request.nextUrl.pathname.startsWith("/admin")
 
   if (isPathAdmin) {
-    if (!user || !user.email || !isAdmin(user.email)) {
+    if (!user || !user.email || !(await isAdmin(user.email))) {
       const url = request.nextUrl.clone()
       url.pathname = "/" 
       return NextResponse.redirect(url)

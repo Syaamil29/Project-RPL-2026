@@ -10,6 +10,7 @@ const menuItems = [
   { label: "Profil", href: "/admin/profil" },
   { label: "Fasilitas", href: "/admin/fasilitas" },
   { label: "Katalog", href: "/admin/katalog" },
+  { label: "Kegiatan", href: "/admin/kegiatan" },
   { label: "Reservasi", href: "/admin/reservasi" },
   { label: "Jadwal", href: "/admin/jadwal" },
 ] as const

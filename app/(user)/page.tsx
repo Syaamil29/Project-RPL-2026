@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 const facilities = [
@@ -21,12 +21,103 @@ const langkahReservasi = [
 export default function HomePage() {
   const router = useRouter();
   
-  const [productList] = useState([
-    { id: 1, nama: "Beras Organik", stock: 15, src: "/beras.png"},
-    { id: 2, nama: "Kacang Organik", stock: 15, src: "/kacang.jpg" },
-    { id: 3, nama: "Bayam Organik", stock: 15, src: "/bayam.jpg" },
-    { id: 4, nama: "Wortel Manis", stock: 25, src: "/wortel.jpg" },
-  ]);
+  const [productList, setProductList] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+
+  const defaultKegiatan = [
+    { id: "fallback-1", nama: "Agroedutourism", deskripsi: "Wisata pertanian edukatif terlengkap di Bogor. Pelajari rantai pasok agribisnis dari pembibitan modern hingga pemasaran.", src: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80" },
+    { id: "fallback-2", nama: "Agripreneur Camp", deskripsi: "Pelatihan wirausaha tani muda.", src: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80" },
+    { id: "fallback-3", nama: "Peminjaman Ruangan", deskripsi: "Sewa ruang rapat, aula, dan lab.", src: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80" },
+    { id: "fallback-4", nama: "Camping", deskripsi: "Bermalam di alam bebas nan sejuk.", src: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=600&q=80" },
+    { id: "fallback-5", nama: "Survey / Wawancara", deskripsi: "Riset & pengambilan data terarah.", src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80" },
+  ];
+
+  const [kegiatanList, setKegiatanList] = useState<any[]>(defaultKegiatan);
+  const [isLoadingKegiatan, setIsLoadingKegiatan] = useState(true);
+
+  useEffect(() => {
+    const fetchLandingProducts = async () => {
+      try {
+        setIsLoadingProducts(true);
+        const { data, error } = await supabase
+          .from("katalog_produk")
+          .select("*")
+          .eq("status", "published")
+          .limit(4);
+
+        if (error) throw error;
+
+        if (data) {
+          const mapped = data.map((row) => ({
+            id: String(row.id),
+            nama: row.nama_produk || "",
+            harga: Number(row.harga) || 0,
+            deskripsi: row.deskripsi || "Tidak ada deskripsi produk.",
+            src: (row.gambar && row.gambar[0]) || "/images-1-facilities.png"
+          }));
+          setProductList(mapped);
+        }
+      } catch (err) {
+        console.error("Gagal memuat produk di landing page:", err);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+    
+    const fetchLandingKegiatan = async () => {
+      try {
+        setIsLoadingKegiatan(true);
+        const { data, error } = await supabase
+          .from("kegiatan")
+          .select("*")
+          .eq("status", "published");
+
+        if (error) throw error;
+
+        if (data) {
+          const mapped = data.map((row) => ({
+            id: String(row.id),
+            nama: row.nama_kegiatan || "",
+            deskripsi: row.deskripsi || "",
+            src: (row.gambar && row.gambar[0]) || "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80"
+          }));
+
+          let sorted = [...mapped];
+          const agroIndex = sorted.findIndex(item => 
+            (item.nama || "").toLowerCase().includes("agroedutourism")
+          );
+          if (agroIndex > 0) {
+            const [agroItem] = sorted.splice(agroIndex, 1);
+            sorted.unshift(agroItem);
+          }
+
+          const finalItems = [...sorted];
+          defaultKegiatan.forEach((fallback) => {
+            if (finalItems.length < 5 && !finalItems.some(item => item.nama.toLowerCase() === fallback.nama.toLowerCase())) {
+              finalItems.push(fallback);
+            }
+          });
+          
+          const finalAgroIndex = finalItems.findIndex(item => 
+            (item.nama || "").toLowerCase().includes("agroedutourism")
+          );
+          if (finalAgroIndex > 0) {
+            const [agroItem] = finalItems.splice(finalAgroIndex, 1);
+            finalItems.unshift(agroItem);
+          }
+
+          setKegiatanList(finalItems.slice(0, 5));
+        }
+      } catch (err) {
+        console.error("Gagal memuat kegiatan di landing page:", err);
+      } finally {
+        setIsLoadingKegiatan(false);
+      }
+    };
+
+    fetchLandingProducts();
+    fetchLandingKegiatan();
+  }, []);
 
   const handleReservasiHero = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -126,6 +217,163 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* KEGIATAN BENTO GRID SECTION */}
+      <section id="kegiatan" className="w-full bg-[#F5F7FF] py-16">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <span className="font-body text-xs font-bold uppercase tracking-wider text-[#2D24B5] bg-blue-50 px-3 py-1 rounded-full">
+              Kegiatan Kami
+            </span>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1] mt-3">
+              Jelajahi Kegiatan di ATP
+            </h2>
+            <p className="font-body mx-auto mt-3 max-w-xl text-slate-600 text-sm md:text-base leading-relaxed">
+              Ikuti berbagai program edukatif, petualangan luar ruangan, riset, dan bisnis pertanian modern langsung bersama para pakar IPB.
+            </p>
+          </div>
+
+          {/* Asymmetrical Bento Box Grid layout */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:grid-rows-2 md:h-[500px] w-full">
+            
+            {/* Card 1: Agroedutourism (Hero Card - col-span-2 row-span-2) */}
+            {kegiatanList[0] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl md:col-span-2 md:row-span-2 h-[300px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[0].src}
+                  alt={kegiatanList[0].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-6 md:p-8 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-xl md:text-2xl font-bold text-white leading-tight">
+                    {kegiatanList[0].nama}
+                  </h3>
+                  <p className="font-body text-xs text-slate-200 mt-2 line-clamp-2 max-w-md font-light leading-relaxed">
+                    {kegiatanList[0].deskripsi}
+                  </p>
+                  <div className="font-body mt-4 text-xs font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 2: Agripreneur Camp (col-span-1 row-span-1) */}
+            {kegiatanList[1] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[1].src}
+                  alt={kegiatanList[1].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[1].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[1].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 3: Peminjaman Ruangan (col-span-1 row-span-1) */}
+            {kegiatanList[2] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[2].src}
+                  alt={kegiatanList[2].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[2].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[2].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 4: Camping (col-span-1 row-span-1) */}
+            {kegiatanList[3] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[3].src}
+                  alt={kegiatanList[3].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[3].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[3].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Card 5: Survey / Wawancara (col-span-1 row-span-1) */}
+            {kegiatanList[4] && (
+              <Link
+                href="/reservasi"
+                className="group relative flex flex-col justify-end overflow-hidden rounded-2xl h-[200px] md:h-full shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={kegiatanList[4].src}
+                  alt={kegiatanList[4].nama}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent z-10" />
+                
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="font-heading text-base md:text-lg font-bold text-white leading-tight">
+                    {kegiatanList[4].nama}
+                  </h3>
+                  <p className="font-body text-[10px] text-slate-300 mt-1 line-clamp-1 font-light">
+                    {kegiatanList[4].deskripsi}
+                  </p>
+                  <div className="font-body mt-3 text-[11px] font-bold text-white flex items-center gap-1 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    Daftar Sekarang! &rarr;
+                  </div>
+                </div>
+              </Link>
+            )}
+
+          </div>
+        </div>
+      </section>
+
       {/* FASILITAS SECTION */}
       <section id="fasilitas" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 bg-white">
         <div className="text-center">
@@ -173,20 +421,46 @@ export default function HomePage() {
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-[#1F17A1]">Produk Kami</h2>
         </div>
         <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {productList.map((item) => (
-            <Link key={item.id} href={`/katalog/${item.id}`} className="group flex flex-col rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
-              <div className="aspect-square w-full bg-slate-100 overflow-hidden">
-                <img src={item.src} alt={item.nama} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              </div>
-              <div className="font-body p-4 flex flex-col flex-grow justify-between">
-                <h3 className="font-heading text-sm md:text-base font-bold text-[#1F17A1] line-clamp-2">{item.nama}</h3>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs md:text-sm font-medium text-slate-500">Stok: {item.stock}</span>
-                  <span className="text-xs md:text-sm font-bold text-[#2D24B5] transition-colors group-hover:text-[#1F17A1]">Detail &rarr;</span>
+          {isLoadingProducts ? (
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="flex flex-col rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm animate-pulse">
+                <div className="aspect-square w-full bg-slate-200" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-slate-200 rounded-full w-2/3" />
+                  <div className="flex justify-between items-center">
+                    <div className="h-3 bg-slate-200 rounded-full w-1/3" />
+                    <div className="h-3 bg-slate-200 rounded-full w-1/4" />
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
+            ))
+          ) : productList.length === 0 ? (
+            <div className="col-span-full py-8 text-center text-slate-500 font-body">Belum ada produk yang dipublikasikan.</div>
+          ) : (
+            productList.map((item) => (
+              <Link key={item.id} href={`/katalog/${item.id}`} className="group flex flex-col rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md">
+                <div className="aspect-square w-full bg-slate-100 overflow-hidden">
+                  <img src={item.src} alt={item.nama} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                </div>
+                <div className="font-body p-4 flex flex-col flex-grow justify-between">
+                  <div>
+                    <h3 className="font-heading text-sm md:text-base font-bold text-[#1F17A1] line-clamp-2">{item.nama}</h3>
+                    <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{item.deskripsi}</p>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-900">
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                      }).format(item.harga)}
+                    </span>
+                    <span className="text-xs md:text-sm font-bold text-[#2D24B5] transition-colors group-hover:text-[#1F17A1]">Detail &rarr;</span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
         <div className="mt-10 flex justify-center">
           <Link href="/katalog" className="font-body rounded-full bg-[#2D24B5] px-8 py-3 text-sm md:text-base font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20188A]">
