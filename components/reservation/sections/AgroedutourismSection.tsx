@@ -39,7 +39,7 @@ export default function AgroedutourismSection({ register, setValue, errors }: Pr
       <FileUpload
         label="Surat Kunjungan"
         error={errors.surat_kunjungan?.message}
-        onChange={(files) => files && setValue("surat_kunjungan", files)}
+        {...register("surat_kunjungan", { required: "Surat kunjungan wajib diunggah" })}
       />
     </div>
   );

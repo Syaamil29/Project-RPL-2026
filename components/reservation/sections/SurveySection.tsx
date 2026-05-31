@@ -30,7 +30,7 @@ export default function SurveySection({ register, setValue, errors }: Props) {
       <FileUpload
         label="Surat Kegiatan"
         error={errors.surat_kegiatan?.message}
-        onChange={(files) => files && setValue("surat_kegiatan", files)}
+        {...register("surat_kegiatan", { required: "Surat kegiatan wajib diunggah" })}
       />
     </div>
   );

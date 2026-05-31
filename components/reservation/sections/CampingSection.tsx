@@ -57,7 +57,7 @@ export default function CampingSection({ register, setValue, watch, errors }: Pr
       <FileUpload
         label="Surat Permohonan Acara"
         error={errors.surat_permohonan_acara?.message}
-        onChange={(files) => files && setValue("surat_permohonan_acara", files)}
+        {...register("surat_permohonan_acara", { required: "Surat permohonan acara wajib diunggah" })}
       />
     </div>
   );

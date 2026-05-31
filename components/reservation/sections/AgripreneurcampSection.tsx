@@ -50,7 +50,7 @@ export default function AgripreneurcampSection({ register, setValue, errors }: P
       <FileUpload
         label="Surat Pelatihan"
         error={errors.surat_pelatihan?.message}
-        onChange={(files) => files && setValue("surat_pelatihan", files)}
+        {...register("surat_pelatihan", { required: "Surat pelatihan wajib diunggah" })}
       />
     </div>
   );

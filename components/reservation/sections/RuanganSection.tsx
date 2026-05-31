@@ -50,7 +50,7 @@ export default function RuanganSection({ register, setValue, errors }: Props) {
       <FileUpload
         label="Surat Peminjaman"
         error={errors.surat_peminjaman?.message}
-        onChange={(files) => files && setValue("surat_peminjaman", files)}
+        {...register("surat_peminjaman", { required: "Surat peminjaman wajib diunggah" })}
       />
     </div>
   );

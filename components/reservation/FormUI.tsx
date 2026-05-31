@@ -94,22 +94,21 @@ export function FileUpload({
   label,
   hint,
   error,
-  onChange,
   accept = ".pdf,.doc,.docx",
+  ...inputProps
 }: {
   label: string;
   hint?: string;
   error?: string;
-  onChange: (files: FileList | null) => void;
   accept?: string;
-}) {
+} & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <FormField label={label} hint={hint ?? "Format PDF, DOC, atau DOCX — maks. 10 MB"} error={error}>
       <input
         type="file"
         accept={accept}
-        onChange={(e) => onChange(e.target.files)}
         className={fileInputClass}
+        {...inputProps}
       />
     </FormField>
   );
