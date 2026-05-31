@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type TouchEvent, useMemo, useState, useEffect, useEffect} from "react";
+import { type TouchEvent, useMemo, useState, useEffect} from "react";
 import { supabase } from "@/lib/supabase";
 import { CATALOG_PRODUCTS } from "@/lib/catalog-products";
 import { DATA_PROFIL_ATP } from '@/src/modules/profil/data';
