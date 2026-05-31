@@ -12,6 +12,7 @@ import {
   RESERVASI_SELECT_COLUMNS,
   statusLabels,
   statusStyles,
+  checkConflict,
   type ReservationRow,
   type ReservationStatus,
 } from "@/lib/reservation"
@@ -67,17 +68,37 @@ export default function AdminReservasiPage() {
   }, [fetchReservations])
 
   const handleUpdateStatus = async (id: string, status: ReservationStatus) => {
-    const confirmed = window.confirm(
-      `Yakin ingin mengubah status reservasi menjadi "${statusLabels[status]}"?`
-    )
-    if (!confirmed) return
+    if (status === "approved") {
+      const targetRes = reservations.find((r) => r.id === id);
+      if (targetRes && checkConflict(targetRes, reservations)) {
+        alert("Slot waktu atau fasilitas pada tanggal ini sudah dibooking oleh reservasi lain yang telah disetujui.");
+        return;
+      }
+    }
+
+    let alasanPenolakan: string | null = null;
+    if (status === "rejected") {
+      const reason = window.prompt("Masukkan alasan penolakan (opsional):");
+      if (reason === null) return; // Dibatalkan oleh admin
+      alasanPenolakan = reason.trim() || null;
+    } else {
+      const confirmed = window.confirm(
+        `Yakin ingin mengubah status reservasi menjadi "${statusLabels[status]}"?`
+      )
+      if (!confirmed) return
+    }
 
     setUpdatingId(id)
     setError(null)
+    
+    const updatePayload: any = { status };
+    if (status === "rejected") {
+      updatePayload.alasan_penolakan = alasanPenolakan;
+    }
 
     const { error: updateError } = await supabase
       .from("reservasi")
-      .update({ status })
+      .update(updatePayload)
       .eq("id", id)
 
     if (updateError) {
@@ -161,11 +182,18 @@ export default function AdminReservasiPage() {
                     <CellText>{getReservationSchedule(item)}</CellText>
                   </td>
                   <td className="px-3 py-4">
-                    <span
-                      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
-                    >
-                      {statusLabels[currentStatus]}
-                    </span>
+                    <div className="flex flex-col items-start gap-1">
+                      <span
+                        className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
+                      >
+                        {statusLabels[currentStatus]}
+                      </span>
+                      {currentStatus === "rejected" && item.alasan_penolakan && (
+                        <span className="text-[10px] text-red-600 font-medium italic mt-1 max-w-[150px] break-words">
+                          "{item.alasan_penolakan}"
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-4 text-sm">
                     {documentUrl ? (

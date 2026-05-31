@@ -24,6 +24,7 @@ function baseRow(
     paket_camping: null,
     tanggal_selesai_acara: null,
     kebutuhan_survey: null,
+    alasan_penolakan: null,
   };
 }
 

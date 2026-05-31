@@ -192,11 +192,19 @@ export default function RiwayatReservasiPage() {
                         <CellText>{getReservationSchedule(item)}</CellText>
                       </td>
                       <td className="px-3 py-4">
-                        <span
-                          className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
-                        >
-                          {statusLabels[currentStatus]}
-                        </span>
+                        <div className="flex flex-col items-start gap-1">
+                          <span
+                            className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[currentStatus]}`}
+                          >
+                            {statusLabels[currentStatus]}
+                          </span>
+                          {currentStatus === "rejected" && item.alasan_penolakan && (
+                            <div className="mt-1.5 flex max-w-[200px] flex-col gap-0.5 rounded border border-red-100 bg-red-50 p-2 text-[11px] leading-relaxed text-red-700">
+                              <span className="font-semibold text-red-800">Alasan Penolakan:</span>
+                              <span className="italic">"{item.alasan_penolakan}"</span>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3 py-4 text-sm">
                         {documentUrl ? (

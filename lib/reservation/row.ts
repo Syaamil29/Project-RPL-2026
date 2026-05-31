@@ -22,6 +22,7 @@ export type ReservationRow = {
   paket_camping: string | null;
   tanggal_selesai_acara: string | null;
   kebutuhan_survey: string | null;
+  alasan_penolakan: string | null;
 };
 
 export type ReservasiRowInsert = Omit<
@@ -52,4 +53,5 @@ export const RESERVASI_SELECT_COLUMNS = [
   "paket_camping",
   "tanggal_selesai_acara",
   "kebutuhan_survey",
+  "alasan_penolakan",
 ].join(", ");

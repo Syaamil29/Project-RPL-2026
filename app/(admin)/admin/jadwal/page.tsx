@@ -13,6 +13,7 @@ import {
   getKebutuhanBadge,
   getReservationDetail,
   getReservationJumlahOrang,
+  checkConflict,
 } from "@/lib/reservation"
 
 /** Memformat tanggal ISO ke format Indonesia. */
@@ -74,18 +75,38 @@ export default function AdminJadwalPage() {
 
   /** Mengupdate status reservasi (quick action). */
   const handleUpdateStatus = async (id: string, status: ReservationStatus) => {
-    const confirmed = window.confirm(
-      `Yakin ingin mengubah status reservasi menjadi "${statusLabels[status]}"?`
-    )
-    if (!confirmed) return
+    if (status === "approved") {
+      const targetRes = reservations.find((r) => r.id === id);
+      if (targetRes && checkConflict(targetRes, reservations)) {
+        alert("Slot waktu atau fasilitas pada tanggal ini sudah dibooking oleh reservasi lain yang telah disetujui.");
+        return;
+      }
+    }
+
+    let alasanPenolakan: string | null = null;
+    if (status === "rejected") {
+      const reason = window.prompt("Masukkan alasan penolakan (opsional):");
+      if (reason === null) return;
+      alasanPenolakan = reason.trim() || null;
+    } else {
+      const confirmed = window.confirm(
+        `Yakin ingin mengubah status reservasi menjadi "${statusLabels[status]}"?`
+      )
+      if (!confirmed) return
+    }
 
     setUpdatingId(id)
     setError(null)
 
+    const updatePayload: any = { status };
+    if (status === "rejected") {
+      updatePayload.alasan_penolakan = alasanPenolakan;
+    }
+
     try {
       const { error: updateError } = await supabase
         .from("reservasi")
-        .update({ status })
+        .update(updatePayload)
         .eq("id", id)
 
       if (updateError) throw updateError
